@@ -1,0 +1,16 @@
+<div class="container mt-4">
+  <h2>Open Events</h2>
+  <ul class="list-group">
+    <li class="list-group-item" ng-repeat="event in events">
+      <strong>{{ event.title }}</strong> – {{ event.game }} ({{ event.format }})<br>
+      <a ui-sref="eventDetail({ id: event.id })">View Details</a>
+    </li>
+  </ul>
+
+  <h2 class="mt-4">Past Events</h2>
+  <ul class="list-group">
+    <li class="list-group-item" ng-repeat="event in pastEvents">
+      {{ event.title }} – Completed
+    </li>
+  </ul>
+</div>

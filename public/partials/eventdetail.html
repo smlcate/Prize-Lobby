@@ -1,0 +1,11 @@
+<div class="container mt-4" ng-if="event">
+  <h3>{{ event.title }}</h3>
+  <p><strong>Game:</strong> {{ event.game }}</p>
+  <p><strong>Type:</strong> {{ event.type }}</p>
+  <p><strong>Format:</strong> {{ event.format }}</p>
+  <p><strong>Platform:</strong> {{ event.platform }}</p>
+  <p><strong>Status:</strong> {{ event.status }}</p>
+  <p><strong>Rules:</strong> {{ event.rules || 'N/A' }}</p>
+
+  <button class="btn btn-primary" ng-click="joinEvent(event.id)" ng-if="event.status === 'pending'">Join Event</button>
+</div>

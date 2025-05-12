@@ -1,0 +1,34 @@
+<div class="container">
+  <h2>Your Transaction History</h2>
+
+  <div>
+    <label>Filter by type:</label>
+    <select ng-model="filterType">
+      <option value="">All</option>
+      <option value="deposit">Deposit</option>
+      <option value="entry_fee">Entry Fee</option>
+      <option value="winnings">Winnings</option>
+      <option value="withdrawal">Withdrawal</option>
+    </select>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Reference</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="tx in transactions | filter:{type: filterType}">
+        <td>{{ tx.type }}</td>
+        <td>{{ formatAmount(tx.amount) }}</td>
+        <td>{{ tx.ref || '-' }}</td>
+        <td>{{ tx.created_at | date:'short' }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+ 

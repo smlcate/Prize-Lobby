@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html ng-app="mainApp">
+<head>
+  <meta charset="UTF-8" />
+  <title>PrizeLobby</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- AngularJS + UI-Router -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/1.0.29/angular-ui-router.min.js"></script>
+
+  <!-- Bootstrap (Optional but Recommended) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+</head>
+<body ng-controller="NavController">
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="#">🎮 PrizeLobby</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" ui-sref="home">Home</a></li>
+        <li class="nav-item"><a class="nav-link" ui-sref="events">Events</a></li>
+        <li class="nav-item" ng-if="isLoggedIn()"><a class="nav-link" ui-sref="createEvent">Create</a></li>
+        <li class="nav-item" ng-if="isLoggedIn()"><a class="nav-link" ui-sref="wallet">Wallet</a></li>
+        <li class="nav-item" ng-if="isLoggedIn()"><a class="nav-link" ui-sref="profile">Profile</a></li>
+        <li ng-if="isLoggedIn()"><a class="nav-link" ui-sref="transactions">Transactions</a></li>
+        <li ng-if="isLoggedIn() && isAdmin"><a ui-sref="admin">Admin</a></li>
+      </ul>
+
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item" ng-if="isLoggedIn()">
+          <a class="nav-link disabled">Balance: ${{ (balance / 100) || 0 | number:2 }}</a>
+        </li>
+        <li class="nav-item" ng-if="isLoggedIn()">
+          <a class="nav-link" href="#" ng-click="logout()">Logout</a>
+        </li>
+        <li class="nav-item" ng-if="!isLoggedIn()">
+          <a class="nav-link" ui-sref="login">Login</a>
+        </li>
+        <li class="nav-item" ng-if="!isLoggedIn()">
+          <a class="nav-link" ui-sref="signup">Sign Up</a>
+        </li>
+      </ul>
+
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <div ui-view></div>
+  </div>
+
+  <!-- App Scripts -->
+  <script src="js/app.js"></script>
+
+  <!-- Services -->
+  <script src="js/services/authService.js"></script>
+  <script src="js/services/eventsService.js"></script>
+  <script src="js/services/gamertagService.js"></script>
+  <script src="js/services/walletService.js"></script>
+  <script src="js/services/transactionsService.js"></script>
+
+  <!-- Controllers -->
+  <script src="js/controllers/authController.js"></script>
+  <script src="js/controllers/eventsController.js"></script>
+  <script src="js/controllers/profileController.js"></script>
+  <script src="js/controllers/gamertagController.js"></script>
+  <script src="js/controllers/navController.js"></script>
+  <script src="js/controllers/walletController.js"></script>
+  <script src="js/controllers/transactionsController.js"></script>
+  <script src="js/controllers/adminController.js"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+<div class="container mt-5">
+  <h3>Create New Event</h3>
+  <form ng-submit="createEvent()">
+    <input class="form-control mb-2" placeholder="Title" ng-model="newEvent.title" required>
+    <input class="form-control mb-2" placeholder="Game" ng-model="newEvent.game" required>
+    <select class="form-control mb-2" ng-model="newEvent.type" required>
+      <option value="event">Event</option>
+      <option value="challenge">Challenge</option>
+    </select>
+    <select class="form-control mb-2" ng-model="newEvent.format" required>
+      <option value="1v1">1v1</option>
+      <option value="team">Team</option>
+      <option value="ffa">Free-for-All</option>
+    </select>
+    <select class="form-control mb-2" ng-model="newEvent.platform" required>
+      <option value="xbox">Xbox</option>
+      <option value="psn">PlayStation</option>
+      <option value="steam">Steam</option>
+      <option value="crossplay">Crossplay</option>
+    </select>
+    <input class="form-control mb-2" type="number" placeholder="Entry Fee (¢)" ng-model="newEvent.entry_fee" required>
+    <input class="form-control mb-2" type="number" placeholder="Max Players" ng-model="newEvent.max_players" required>
+    <textarea class="form-control mb-2" placeholder="Rules" ng-model="newEvent.rules"></textarea>
+    <button class="btn btn-success">Create Event</button>
+  </form>
+</div>

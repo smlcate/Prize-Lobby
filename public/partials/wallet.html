@@ -1,0 +1,13 @@
+<div class="container mt-4">
+  <h3>Your Wallet</h3>
+
+  <p><strong>Balance:</strong> ${{ (balance / 100) || 0 }}</p>
+
+  <form ng-submit="deposit()" class="d-flex gap-2">
+    <input type="number" class="form-control" ng-model="amount" placeholder="Amount in USD" required min="1">
+    <button class="btn btn-success">Add Funds</button>
+  </form>
+
+  <div ng-if="success" class="alert alert-success mt-3">Deposit successful!</div>
+  <div ng-if="canceled" class="alert alert-warning mt-3">Deposit canceled.</div>
+</div>
