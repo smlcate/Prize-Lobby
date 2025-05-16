@@ -1,0 +1,31 @@
+<!-- partials/challenge-result.html -->
+<div ng-if="challengeId">
+  <div class="card p-3 my-2">
+    <h4>Challenge #{{ challengeId }} Result</h4>
+    <p ng-if="!result">Loading result...</p>
+    <div ng-if="result">
+      <p>Status: {{ result.status }}</p>
+      <p ng-if="result.winner">Winner ID: {{ result.winner }}</p>
+      <p ng-if="result.score">Score: {{ result.score }}</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  app.controller('ChallengeResultController', function($scope, $http) {
+    $scope.result = null;
+
+    $scope.$watch('challengeId', function(newVal) {
+      if (newVal) {
+        $http.get('/api/challenges/' + newVal + '/result')
+          .then(function(res) {
+            $scope.result = res.data;
+          })
+          .catch(function(err) {
+            console.error('Failed to load challenge result', err);
+            $scope.result = { status: 'Error fetching result' };
+          });
+      }
+    });
+  });
+</script>

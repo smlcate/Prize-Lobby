@@ -1,0 +1,72 @@
+<!-- File: partials/bracket.html -->
+<div class="container mt-4" ng-controller="BracketController">
+  <h2>Event Bracket</h2>
+
+  <match-countdown start-time="match.start_time"></match-countdown>
+
+  <div ng-if="loading" class="alert alert-info">Loading bracket...</div>
+  <div ng-if="error" class="alert alert-danger">{{ error }}</div>
+
+  <div ng-if="!loading && bracket.length">
+    <div class="row" ng-repeat="round in groupedRounds">
+      <div class="col">
+        <h4>Round {{ round.round }}</h4>
+        <div class="card mb-3" ng-repeat="match in round.matches">
+          <div class="card-body">
+
+            <!-- Match Status Badge -->
+            <div class="mb-2">
+              <span class="badge"
+                    ng-class="{
+                      'bg-secondary': !match.player1 || !match.player2,
+                      'bg-info text-dark': match.player1 && match.player2 && !match.verified && !match.verification_failed,
+                      'bg-success': match.verified,
+                      'bg-danger': match.verification_failed
+                    }">
+                {{ !match.player1 || !match.player2 ? 'Waiting for players' :
+                   match.verified ? 'Verified' :
+                   match.verification_failed ? 'Verification failed' :
+                   'Verifying...' }}
+              </span>
+            </div>
+
+            <div><strong>Match {{ match.match }}</strong></div>
+
+            <div>
+              {{ match.player1.gamertag || 'TBD' }}
+              <span class="badge bg-success" ng-if="match.winner_id === match.player1.user_id">Winner</span>
+              <span class="float-end">{{ match.score1 }}</span>
+            </div>
+
+            <div>
+              {{ match.player2.gamertag || 'TBD' }}
+              <span class="badge bg-success" ng-if="match.winner_id === match.player2.user_id">Winner</span>
+              <span class="float-end">{{ match.score2 }}</span>
+            </div>
+
+            <!-- Verification Details -->
+            <div class="mt-2">
+              <div ng-if="match.verified && match.result">
+                <small>Result:</small>
+                <ul>
+                  <li ng-if="match.result.kills">Kills: {{ match.result.kills }}</li>
+                  <li ng-if="match.result.damage">Damage: {{ match.result.damage }}</li>
+                  <li ng-if="match.result.score">Score: {{ match.result.score }}</li>
+                </ul>
+              </div>
+
+              <div ng-if="!match.verified && match.player1 && match.player2">
+                <a href="#!/verify-match/{{match.id}}" class="btn btn-warning btn-sm">Verify Match</a>
+              </div>
+            </div>
+
+            <div class="mt-2">
+              <small>Status: {{ match.status || 'pending' }}</small>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

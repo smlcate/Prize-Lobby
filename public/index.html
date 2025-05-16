@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html ng-app="mainApp">
 <head>
+  <script src="https://js.stripe.com/v3/"></script>
   <meta charset="UTF-8" />
   <title>PrizeLobby</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -20,10 +21,13 @@
       <ul class="navbar-nav me-auto">
         <li class="nav-item"><a class="nav-link" ui-sref="home">Home</a></li>
         <li class="nav-item"><a class="nav-link" ui-sref="events">Events</a></li>
+        <li class="nav-item"><a class="nav-link" ui-sref="challenges">Challenges</a></li>
         <li class="nav-item" ng-if="isLoggedIn()"><a class="nav-link" ui-sref="createEvent">Create</a></li>
         <li class="nav-item" ng-if="isLoggedIn()"><a class="nav-link" ui-sref="wallet">Wallet</a></li>
         <li class="nav-item" ng-if="isLoggedIn()"><a class="nav-link" ui-sref="profile">Profile</a></li>
         <li ng-if="isLoggedIn()"><a class="nav-link" ui-sref="transactions">Transactions</a></li>
+        <li ng-if="isLoggedIn()"><a ui-sref="notifications">🔔 Notifications<span class="badge bg-danger" ng-if="unreadCount > 0">{{ unreadCount }}</span></a></li>
+
         <li ng-if="isLoggedIn() && isAdmin"><a ui-sref="admin">Admin</a></li>
       </ul>
 
@@ -52,6 +56,10 @@
   <!-- App Scripts -->
   <script src="js/app.js"></script>
 
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/services/socketService.js"></script>
+
+
   <!-- Services -->
   <script src="js/services/authService.js"></script>
   <script src="js/services/eventsService.js"></script>
@@ -60,14 +68,45 @@
   <script src="js/services/transactionsService.js"></script>
 
   <!-- Controllers -->
+  <script src="js/controllers/mainController.js"></script>
   <script src="js/controllers/authController.js"></script>
+  <script src="js/controllers/adminEventsController.js"></script>
+  <script src="js/controllers/adminWithdrawalsController.js"></script>
+  <script src="js/controllers/adminTransactionsController.js"></script>
+  <script src="js/controllers/adminSettingsController.js"></script>
+  <script src="js/controllers/withdrawController.js"></script>
   <script src="js/controllers/eventsController.js"></script>
+  <script src="js/controllers/challengesController.js"></script>
+  <script src="js/controllers/matchController.js"></script>
+  <script src="js/controllers/bracketController.js"></script>
   <script src="js/controllers/profileController.js"></script>
-  <script src="js/controllers/gamertagController.js"></script>
   <script src="js/controllers/navController.js"></script>
   <script src="js/controllers/walletController.js"></script>
   <script src="js/controllers/transactionsController.js"></script>
   <script src="js/controllers/adminController.js"></script>
+  <script src="js/controllers/notificationsController.js"></script>
+  <script src="js/controllers/profileController.js"></script>
+  <script src="/js/controllers/adminDisputesController.js"></script>
+  <script src="/js/controllers/challengeResultsController.js"></script>
+  <script src="js/controllers/verifyMatchController.js"></script>
+
+
+
+  <script src="js/directives/matchCountdown.js"></script>
+
+
+  <script>
+  (function() {
+    const open = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url) {
+      if (url.includes('/api/users/') && !url.includes('/me')) {
+        console.warn('🛰 XHR to:', method, url);
+        console.trace('📍 XHR stack trace');
+      }
+      return open.apply(this, arguments);
+    };
+  })();
+  </script>
 
 
 </body>

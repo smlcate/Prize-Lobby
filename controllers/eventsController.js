@@ -1,19 +1,64 @@
 const db = require('../models/db');
 
-const createEvent = async (req, res) => {
-  const { title, type, game, format, entry_fee, max_players, platform, rules } = req.body;
+// ✅ Get all events (for event list view)
+const getAllEvents = async (req, res) => {
   try {
-    const [id] = await db('events').insert({
-      creator_id: req.user.id,
-      title,
-      type,
-      game,
-      format,
-      entry_fee,
-      max_players,
-      platform,
-      rules
-    }).returning('id');
+    const events = await db('events').select('*').orderBy('created_at', 'desc');
+    res.json(events);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve events' });
+  }
+};
+
+// ✅ Get a specific event by ID
+const getEventById = async (req, res) => {
+  try {
+    const event = await db('events').where({ id: req.params.id }).first();
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+
+    const participants = await db('event_participants')
+      .join('users', 'event_participants.user_id', 'users.id')
+      .select(
+        'event_participants.user_id',
+        'event_participants.gamertag',
+        'event_participants.platform',
+        'event_participants.score',
+        'users.username'
+      )
+      .where({ event_id: event.id });
+
+    res.json({
+      ...event,
+      participants: participants.sort((a, b) => b.score - a.score)
+    });
+  } catch (err) {
+    console.error('Error fetching event details:', err);
+    res.status(500).json({ error: 'Failed to fetch event details' });
+  }
+};
+
+
+// ✅ Create a new event
+const createEvent = async (req, res) => {
+  const {
+    title, type, game, format,
+    entry_fee, max_players, platform, rules
+  } = req.body;
+
+  try {
+    const [id] = await db('events')
+      .insert({
+        creator_id: req.user.id,
+        title,
+        type,
+        game,
+        format,
+        entry_fee,
+        max_players,
+        platform,
+        rules
+      })
+      .returning('id');
 
     res.status(201).json({ message: 'Event created', event_id: id });
   } catch (err) {
@@ -21,6 +66,7 @@ const createEvent = async (req, res) => {
   }
 };
 
+// ✅ Join an event (with platform/gamertag validation)
 const joinEvent = async (req, res) => {
   const eventId = req.params.eventId;
 
@@ -28,59 +74,34 @@ const joinEvent = async (req, res) => {
     const event = await db('events').where({ id: eventId }).first();
     if (!event) return res.status(404).json({ error: 'Event not found' });
 
-    // Check for platform-compatible gamertag
     const tag = await db('gamertags')
       .where({ user_id: req.user.id })
-      .andWhere(function () {
-        this.where('platform', event.platform).orWhere('platform', 'crossplay');
-      })
+      .andWhere(builder =>
+        builder.where('platform', event.platform).orWhere('platform', 'crossplay')
+      )
       .first();
 
     if (!tag) {
       return res.status(403).json({ error: 'No compatible gamertag for this platform' });
     }
 
-    // Check wallet balance
-    const user = await db('users').where({ id: req.user.id }).first();
-    if (user.wallet_balance < event.entry_fee) {
-      return res.status(403).json({ error: 'Insufficient wallet balance' });
-    }
-
-    // Deduct from wallet and credit prize pool
-    await db.transaction(async trx => {
-      await trx('users')
-        .where({ id: req.user.id })
-        .decrement('wallet_balance', event.entry_fee);
-
-      await trx('events')
-        .where({ id: eventId })
-        .increment('prize_pool', event.entry_fee);
-
-      await trx('event_participants').insert({
-        event_id: eventId,
-        user_id: req.user.id,
-        gamertag: tag.gamertag,
-        platform: tag.platform
-      });
-
-      await trx('transactions').insert({
-        user_id: req.user.id,
-        type: 'entry_fee',
-        amount: -event.entry_fee,
-        ref: `event:${eventId}`
-      });
+    await db('event_participants').insert({
+      event_id: eventId,
+      user_id: req.user.id,
+      gamertag: tag.gamertag,
+      platform: tag.platform
     });
 
     res.status(200).json({ message: 'Joined event successfully' });
   } catch (err) {
-    console.error('Join event error:', err);
     res.status(400).json({ error: 'Failed to join event', details: err.message });
   }
 };
 
-
+// ✅ Start an event (host only)
 const startEvent = async (req, res) => {
   const eventId = req.params.eventId;
+
   try {
     const event = await db('events').where({ id: eventId }).first();
     if (!event) return res.status(404).json({ error: 'Event not found' });
@@ -89,9 +110,10 @@ const startEvent = async (req, res) => {
       return res.status(403).json({ error: 'Only the host can start the event' });
     }
 
-    await db('events')
-      .where({ id: eventId })
-      .update({ status: 'started', updated_at: new Date() });
+    await db('events').where({ id: eventId }).update({
+      status: 'started',
+      started_at: new Date()
+    });
 
     res.status(200).json({ message: 'Event started' });
   } catch (err) {
@@ -99,92 +121,78 @@ const startEvent = async (req, res) => {
   }
 };
 
+// ✅ Complete event, calculate winner & handle payouts
 const completeEvent = async (req, res) => {
   const eventId = req.params.eventId;
 
   try {
     const event = await db('events').where({ id: eventId }).first();
     if (!event) return res.status(404).json({ error: 'Event not found' });
-    if (event.status !== 'started') return res.status(400).json({ error: 'Event not started or already completed' });
+
+    if (event.status !== 'started') {
+      return res.status(400).json({ error: 'Event must be started before completing' });
+    }
 
     const participants = await db('event_participants')
       .where({ event_id: eventId })
-      .orderBy('score', 'desc'); // Later, this can reflect real results
+      .orderBy('score', 'desc');
 
-    if (participants.length < 2) {
-      return res.status(400).json({ error: 'Not enough participants for a payout' });
+    if (participants.length < 1) {
+      return res.status(400).json({ error: 'No participants in event' });
     }
 
     const winner = participants[0];
-    const prizePool = event.prize_pool;
 
-    const feeSetting = await db('settings').where({ key: 'platform_fee_percent' }).first();
-    const feePercent = parseFloat(feeSetting?.value || '10');
-    const feeAmount = Math.floor(prizePool * (feePercent / 100));
-    const payout = prizePool - feeAmount;
+    const totalPool = participants.length * event.entry_fee;
+    const siteFee = Math.floor(totalPool * 0.1);
+    const payout = totalPool - siteFee;
 
-    await db.transaction(async trx => {
-      // Update event
-      await trx('events').where({ id: eventId }).update({
-        status: 'completed',
-        updated_at: new Date()
-      });
+    await db('users')
+      .where({ id: winner.user_id })
+      .increment('wallet_balance', payout);
 
-      // Update winner wallet
-      await trx('users')
-        .where({ id: winner.user_id })
-        .increment('wallet_balance', payout);
-
-      // Record transactions
-      await trx('transactions').insert([
-        {
-          user_id: winner.user_id,
-          type: 'winnings',
-          amount: payout,
-          ref: `event:${eventId}`
-        },
-        {
-          user_id: null, // or system account
-          type: 'platform_fee',
-          amount: feeAmount,
-          ref: `event:${eventId}`
-        }
-      ]);
+    await db('transactions').insert({
+      user_id: winner.user_id,
+      type: 'payout',
+      amount: payout,
+      ref: `event-${eventId}`
     });
 
-    res.status(200).json({ message: 'Event completed, prize paid' });
+    await db('events').where({ id: eventId }).update({
+      status: 'completed',
+      verified: true,
+      verified_at: new Date(),
+      winner_id: winner.user_id
+    });
+
+    res.status(200).json({ message: 'Event completed and prize awarded' });
   } catch (err) {
-    console.error('❌ completeEvent error:', err);
+    console.error('❌ Error completing event:', err);
     res.status(500).json({ error: 'Prize payout failed', details: err.message });
   }
 };
 
+// ✅ Admin/manual event result verification fallback
+const verifyEventResults = async (req, res) => {
+  const eventId = req.params.eventId;
 
-const getAllEvents = async (req, res) => {
   try {
-    const events = await db('events').select('*');
-    res.json(events);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch events', details: err.message });
-  }
-};
+    await db('events')
+      .where({ id: eventId })
+      .update({ verified: true, verified_at: new Date() });
 
-const getEventById = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const event = await db('events').where({ id }).first();
-    if (!event) return res.status(404).json({ error: 'Event not found' });
-    res.json(event);
+    res.status(200).json({ message: 'Event manually verified' });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch event', details: err.message });
+    res.status(500).json({ error: 'Failed to verify event', details: err.message });
   }
 };
 
 module.exports = {
+  getAllEvents,
+  getEventById,
   createEvent,
   joinEvent,
   startEvent,
   completeEvent,
-  getAllEvents,
-  getEventById
+  verifyEventResults
 };

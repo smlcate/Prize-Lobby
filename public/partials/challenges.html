@@ -1,0 +1,39 @@
+<!-- public/partials/challenges.html -->
+<div class="container">
+  <h2>Available Challenges</h2>
+
+  <div class="alert alert-danger" ng-if="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <table class="table table-striped" ng-if="challenges.length">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Game</th>
+        <th>Platform</th>
+        <th>Entry Fee</th>
+        <th>Prize</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="challenge in challenges">
+        <td>{{ challenge.title }}</td>
+        <td>{{ challenge.game }}</td>
+        <td>{{ challenge.platform }}</td>
+        <td>{{ challenge.entry_fee / 100 | currency }}</td>
+        <td>{{ challenge.prize / 100 | currency }}</td>
+        <td>{{ challenge.status }}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" ng-if="challenge.status === 'open'">Join</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div ng-if="!challenges.length && !errorMessage">
+    <p>No challenges available at this time.</p>
+  </div>
+</div>

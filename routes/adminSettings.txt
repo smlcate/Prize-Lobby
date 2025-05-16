@@ -1,0 +1,13 @@
+
+// Inside PUT /api/admin/settings/platform-fee route
+await db('platform_settings').update({
+  platform_fee_percent,
+  min_withdrawal_amount,
+  max_event_participants,
+  max_challenges_per_user,
+  verification_grace_minutes,
+  support_email
+});
+
+const updated = await db('platform_settings').first();
+res.json(updated);

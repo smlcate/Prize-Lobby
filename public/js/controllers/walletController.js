@@ -1,56 +1,59 @@
-angular.module('mainApp')
-.controller('WalletController', function($scope, $http, $location, WalletService, AuthService, $timeout) {
-  $scope.balance = 0;
-  $scope.amount = null;
-  $scope.success = $location.search().success;
-  $scope.canceled = $location.search().canceled;
+app.controller('WalletController', function($scope, $http, AuthService) {
+  console.log('[WalletController] Initialized');
+  $scope.wallet = {};
+  $scope.depositAmount = 1000;
+  $scope.cardElement = null;
 
-  // Refresh wallet balance from API
-  const loadBalance = () => {
-    WalletService.getBalance().then(res => {
-      $scope.balance = res.data.balance;
+  $scope.loadWallet = function() {
+    $http.get('/api/wallet/balance').then(function(res) {
+      $scope.wallet = res.data;
     });
   };
 
-  // Handle deposit and redirect to Stripe
+  $scope.formatAmount = function(amount) {
+    return '$' + (amount / 100).toFixed(2);
+  };
+
+  $scope.setupStripe = function() {
+    const stripe = Stripe('pk_test_51RNyKQDInsWLln2c9JIJ6elbP3Wt7wYdC5IJ2gXn17P6BHjzSfhlASYhBYKSvNM63wh140Wo3lbx0sbC9FezLpCv00rontYUva');
+    const elements = stripe.elements();
+    $scope.cardElement = elements.create('card');
+    $scope.cardElement.mount('#card-element');
+    $scope.stripe = stripe;
+  };
+
   $scope.deposit = function() {
-    const cents = Math.round($scope.amount * 100);
-    WalletService.deposit(cents).then(res => {
-      window.location.href = res.data.url;
+    console.log('[WalletController] Starting deposit for amount:', $scope.depositAmount);
+
+    $http.post('/api/wallet/deposit/intent', {
+      amount: $scope.depositAmount
+    }).then(function(res) {
+      const clientSecret = res.data.client_secret;
+      console.log('[Stripe] Got client_secret:', clientSecret);
+
+      $scope.stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: $scope.cardElement,
+          billing_details: {
+            email: AuthService.getUserPayload().email
+          }
+        }
+      }).then(function(result) {
+        if (result.error) {
+          console.error('[Stripe] Payment failed:', result.error.message);
+          alert('Payment failed: ' + result.error.message);
+        } else {
+          console.log('[Stripe] Payment confirmed:', result.paymentIntent.id);
+          alert('Deposit successful!');
+          $scope.loadWallet();
+        }
+      });
+    }).catch(function(err) {
+      console.error('Deposit error:', err);
+      alert('Failed to create payment intent.');
     });
   };
 
-  $scope.withdraw = {};
-
-  $scope.submitWithdrawal = function() {
-    $http.post('/api/wallet/withdraw', $scope.withdraw, {
-      headers: { Authorization: 'Bearer ' + AuthService.getToken() }
-    }).then(res => {
-      $scope.message = res.data.message;
-      $scope.error = '';
-      $scope.withdraw = {};
-    }).catch(err => {
-      $scope.error = err.data.error || 'Failed to request withdrawal';
-      $scope.message = '';
-    });
-  };
-
-  $http.get('/api/wallet/balance', {
-    headers: { Authorization: 'Bearer ' + AuthService.getToken() }
-  }).then(res => {
-    $scope.walletBalance = res.data.balance;
-  });
-
-
-  // If user came back from successful deposit, refresh balance
-  if ($scope.success) {
-    loadBalance();
-
-    // Optionally clear ?success= query param from URL after 2s
-    $timeout(() => {
-      $location.search('success', null);
-    }, 2000);
-  } else {
-    loadBalance(); // normal page load
-  }
+  $scope.loadWallet();
+  $scope.setupStripe();
 });

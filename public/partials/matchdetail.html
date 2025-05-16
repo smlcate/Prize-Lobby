@@ -1,0 +1,52 @@
+
+<div class="match-detail" ng-controller="MatchController">
+  <h2>Match vs {{ match.opponentName }}</h2>
+
+  <match-countdown start-time="match.start_time"></match-countdown>
+
+  <!-- Match status badge -->
+  <div class="mb-3">
+    <span class="badge"
+          ng-class="{
+            'bg-secondary': !match.started,
+            'bg-info text-dark': match.started && !match.verified && !match.verification_failed,
+            'bg-success': match.verified,
+            'bg-danger': match.verification_failed
+          }">
+      {{ !match.started ? 'Waiting to start' :
+         match.verified ? 'Verified' :
+         match.verification_failed ? 'Verification failed' :
+         'Verifying match results...' }}
+    </span>
+  </div>
+
+  <!-- Verified result display -->
+  <div ng-if="match.verified">
+    <p><strong>Result Verified:</strong> Yes</p>
+    <p><strong>Score:</strong> {{ match.score1 }} - {{ match.score2 }}</p>
+    <p><strong>Winner:</strong> {{ match.winnerName }}</p>
+  </div>
+
+  <!-- Manual result submission (if participant) -->
+  <div ng-if="!match.verified && isParticipant">
+    <h3>Submit Result</h3>
+    <form ng-submit="submitResult()">
+      <label>Your Score</label>
+      <input type="number" ng-model="result.teamA" required class="form-control mb-2">
+      <label>Opponent Score</label>
+      <input type="number" ng-model="result.teamB" required class="form-control mb-3">
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+
+  <!-- Waiting state -->
+  <div ng-if="!match.verified && !isParticipant && !match.verification_failed">
+    <p>Waiting for result verification...</p>
+  </div>
+
+  <!-- Verification failed state -->
+  <div ng-if="match.verification_failed">
+    <p class="text-danger">Automatic verification failed. This match is under manual review.</p>
+  </div>
+
+</div>

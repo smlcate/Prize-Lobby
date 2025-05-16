@@ -3,6 +3,7 @@ angular.module('mainApp')
   $scope.user = {};
 
   $scope.login = function() {
+    console.log('🧪 Login form submitted:', $scope.user);
     AuthService.login($scope.user).then(() => {
       $state.go('events');
     }).catch(() => {

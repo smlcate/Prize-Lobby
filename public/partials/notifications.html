@@ -1,0 +1,16 @@
+<!-- public/partials/notifications.html -->
+<div class="container mt-4" ng-controller="NotificationsController">
+  <h3>Your Notifications</h3>
+
+  <div class="alert alert-danger" ng-if="error">{{ error }}</div>
+
+  <ul class="list-group">
+    <li ng-repeat="note in notifications" class="list-group-item d-flex justify-content-between align-items-center"
+        ng-class="{ 'list-group-item-light': note.is_read === false }">
+      <span>{{ note.message }}</span>
+      <button class="btn btn-sm btn-outline-primary"
+              ng-if="!note.is_read"
+              ng-click="markAsRead(note.id)">Mark as Read</button>
+    </li>
+  </ul>
+</div>

@@ -1,0 +1,57 @@
+<div class="admin-disputes" ng-controller="AdminDisputesController">
+  <h2 class="text-xl font-bold mb-4">Disputes</h2>
+
+  <table class="table-auto w-full border">
+    <thead>
+      <tr class="bg-gray-100">
+        <th class="p-2 border">ID</th>
+        <th class="p-2 border">Challenge</th>
+        <th class="p-2 border">User</th>
+        <th class="p-2 border">Reason</th>
+        <th class="p-2 border">Status</th>
+        <th class="p-2 border">Admin Comment</th>
+        <th class="p-2 border">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="d in disputes">
+        <td class="p-2 border">{{ d.id }}</td>
+        <td class="p-2 border">{{ d.challenge_title }}</td>
+        <td class="p-2 border">{{ d.submitted_by }}</td>
+        <td class="p-2 border">{{ d.reason }}</td>
+        <td class="p-2 border">{{ d.status }}</td>
+        <td class="p-2 border">{{ d.admin_comment || '-' }}</td>
+        <td class="p-2 border">
+          <button ng-click="resolveDispute(d, 'resolved')" class="bg-green-500 text-white px-2 py-1 rounded">Resolve</button>
+          <button ng-click="resolveDispute(d, 'rejected')" class="bg-red-500 text-white px-2 py-1 rounded ml-2">Reject</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+mainApp.controller('AdminDisputesController', function($scope, $http) {
+  $scope.disputes = [];
+
+  $http.get('/api/admin/disputes').then(function(response) {
+    $scope.disputes = response.data;
+  });
+
+  $scope.resolveDispute = function(dispute, status) {
+    const comment = prompt("Enter admin comment:", dispute.admin_comment || '');
+    if (!comment) return;
+
+    $http.patch('/api/admin/disputes/' + dispute.id, {
+      status: status,
+      admin_comment: comment
+    }).then(function(response) {
+      alert('Dispute updated.');
+      dispute.status = status;
+      dispute.admin_comment = comment;
+    }, function(err) {
+      alert('Failed to update dispute.');
+    });
+  };
+});
+</script>

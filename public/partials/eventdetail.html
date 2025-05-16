@@ -1,11 +1,69 @@
-<div class="container mt-4" ng-if="event">
-  <h3>{{ event.title }}</h3>
-  <p><strong>Game:</strong> {{ event.game }}</p>
-  <p><strong>Type:</strong> {{ event.type }}</p>
-  <p><strong>Format:</strong> {{ event.format }}</p>
-  <p><strong>Platform:</strong> {{ event.platform }}</p>
-  <p><strong>Status:</strong> {{ event.status }}</p>
-  <p><strong>Rules:</strong> {{ event.rules || 'N/A' }}</p>
 
-  <button class="btn btn-primary" ng-click="joinEvent(event.id)" ng-if="event.status === 'pending'">Join Event</button>
+<div class="event-detail">
+
+  <match-countdown start-time="match.start_time"></match-countdown>
+
+  <h2>{{ event.title }}</h2>
+  <p><strong>Game:</strong> {{ event.game }}</p>
+  <p><strong>Platform:</strong> {{ event.platform }}</p>
+  <p><strong>Type:</strong> {{ event.type }}</p>
+  <p><strong>Entry Fee:</strong> {{ event.entry_fee / 100 | currency }}</p>
+  <p><strong>Status:</strong> {{ event.status }}</p>
+  <p><strong>Verified:</strong> {{ event.verified ? '✅ Verified' : '❌ Not Verified' }}</p>
+  <p ng-if="event.winner_id"><strong>Winner ID:</strong> {{ event.winner_id }}</p>
+
+  <!-- Participants Table -->
+  <div ng-if="event.participants && event.participants.length">
+    <h3>Participants:</h3>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Gamertag</th>
+          <th>Platform</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="p in event.participants">
+          <td>{{ p.gamertag || 'Unknown' }}</td>
+          <td>{{ p.platform || 'N/A' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Match Summary Table -->
+  <div ng-if="event.matches && event.matches.length">
+    <h3 class="mt-4">Match Summary</h3>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Player 1</th>
+          <th>Score</th>
+          <th>Player 2</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="match in event.matches">
+          <td>{{ match.player1?.gamertag || 'TBD' }}</td>
+          <td>{{ match.score1 || '-' }} : {{ match.score2 || '-' }}</td>
+          <td>{{ match.player2?.gamertag || 'TBD' }}</td>
+          <td>
+            <span class="badge"
+                  ng-class="{
+                    'bg-secondary': !match.player1 || !match.player2,
+                    'bg-info text-dark': match.player1 && match.player2 && !match.verified && !match.verification_failed,
+                    'bg-success': match.verified,
+                    'bg-danger': match.verification_failed
+                  }">
+              {{ !match.player1 || !match.player2 ? 'Waiting for players' :
+                 match.verified ? 'Verified' :
+                 match.verification_failed ? 'Verification failed' :
+                 'Verifying...' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>

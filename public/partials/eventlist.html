@@ -1,16 +1,31 @@
+
 <div class="container mt-4">
   <h2>Open Events</h2>
   <ul class="list-group">
     <li class="list-group-item" ng-repeat="event in events">
-      <strong>{{ event.title }}</strong> – {{ event.game }} ({{ event.format }})<br>
-      <a ui-sref="eventDetail({ id: event.id })">View Details</a>
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <strong>{{ event.title }}</strong> – {{ event.game }} ({{ event.format }})<br>
+          <small>{{ event.participants.length || 0 }}/{{ event.max_players || 8 }} players</small><br>
+          <span class="badge mt-1"
+                ng-class="{
+                  'bg-secondary': !event.started,
+                  'bg-success': event.started && !event.completed,
+                  'bg-dark': event.completed
+                }">
+            {{ !event.started ? 'Not started' : event.completed ? 'Completed' : 'In Progress' }}
+          </span>
+        </div>
+        <a class="btn btn-sm btn-outline-primary" ui-sref="eventDetail({ id: event.id })">View Details</a>
+      </div>
     </li>
   </ul>
 
   <h2 class="mt-4">Past Events</h2>
   <ul class="list-group">
     <li class="list-group-item" ng-repeat="event in pastEvents">
-      {{ event.title }} – Completed
+      <strong>{{ event.title }}</strong> – Completed
+      <span class="text-muted">(Matches: {{ event.total_matches || '?' }})</span>
     </li>
   </ul>
 </div>

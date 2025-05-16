@@ -1,0 +1,12 @@
+<!-- File: partials/verify-match.html -->
+<div class="verify-match">
+  <h2>Match Verification</h2>
+  <p>Game: {{ match.game }}</p>
+  <p>Status: {{ match.verified ? 'Verified' : 'Unverified' }}</p>
+  <div ng-if="match.result">
+    <h4>Result:</h4>
+    <pre>{{ match.result | json }}</pre>
+  </div>
+  <button ng-click="verifyMatch()" class="btn btn-primary">Verify Match</button>
+  <p class="error" ng-if="error">{{ error }}</p>
+</div>

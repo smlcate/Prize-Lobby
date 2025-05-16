@@ -1,0 +1,53 @@
+
+<div class="admin-settings" ng-controller="AdminSettingsController">
+  <h4>Platform Settings</h4>
+
+  <form ng-submit="saveSettings()" style="max-width: 400px;">
+
+    <label>
+      Platform Fee (%):
+      <small class="text-muted">Current: {{ settings.platform_fee_percent }}%</small>
+    </label>
+    <input type="number" ng-model="settings.platform_fee_percent" class="form-control" min="0" max="100" required />
+
+    <label>
+      Minimum Withdrawal Amount ($):
+      <small class="text-muted">Current: ${{ settings.min_withdrawal_amount / 100 | number:2 }}</small>
+    </label>
+    <input type="number" ng-model="settings.min_withdrawal_amount" class="form-control" min="0" step="1" required />
+
+    <label>
+      Max Event Participants:
+      <small class="text-muted">Current: {{ settings.max_event_participants }}</small>
+    </label>
+    <input type="number" ng-model="settings.max_event_participants" class="form-control" min="2" required />
+
+    <label>
+      Max Challenges Per User:
+      <small class="text-muted">Current: {{ settings.max_challenges_per_user }}</small>
+    </label>
+    <input type="number" ng-model="settings.max_challenges_per_user" class="form-control" min="1" required />
+
+    <label>
+      Verification Grace Period (minutes):
+      <small class="text-muted">Current: {{ settings.verification_grace_minutes }} minutes</small>
+    </label>
+    <input type="number" ng-model="settings.verification_grace_minutes" class="form-control" min="1" required />
+
+    <label>
+      Support Email:
+      <small class="text-muted">Current: {{ settings.support_email }}</small>
+    </label>
+    <input type="email" ng-model="settings.support_email" class="form-control" required />
+
+    <button type="submit" class="btn btn-primary" style="margin-top: 10px;" ng-disabled="loading">
+      <span ng-if="loading">⏳ Saving...</span>
+      <span ng-if="!loading">Save Settings</span>
+    </button>
+  </form>
+
+  <div style="margin-top: 10px;">
+    <p class="text-success" ng-if="success">{{ success }}</p>
+    <p class="text-danger" ng-if="error">{{ error }}</p>
+  </div>
+</div>

@@ -31,4 +31,27 @@
     </tbody>
   </table>
 </div>
- 
+<hr>
+<h3>Your Withdrawals</h3>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Amount</th>
+      <th>Method</th>
+      <th>Details</th>
+      <th>Status</th>
+      <th>Requested</th>
+      <th>Reviewed</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="w in withdrawals">
+      <td>{{ formatAmount(w.amount) }}</td>
+      <td>{{ w.method }}</td>
+      <td>{{ w.details || '-' }}</td>
+      <td>{{ w.status }}</td>
+      <td>{{ w.requested_at | date:'short' }}</td>
+      <td>{{ w.reviewed_at ? (w.reviewed_at | date:'short') : '-' }}</td>
+    </tr>
+  </tbody>
+</table>

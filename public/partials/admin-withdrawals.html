@@ -1,0 +1,40 @@
+<div ng-controller="AdminWithdrawalsController" class="admin-section">
+  <h2>Withdrawal Requests</h2>
+
+  <div ng-if="loading">Loading withdrawals...</div>
+  <div ng-if="error">{{ error }}</div>
+
+  <div ng-if="!loading && withdrawals.length === 0">
+    <p>No withdrawal requests found.</p>
+  </div>
+
+  <table class="table" ng-if="!loading && withdrawals.length > 0">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Email</th>
+        <th>Amount ($)</th>
+        <th>Method</th>
+        <th>Details</th>
+        <th>Status</th>
+        <th>Requested</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="w in withdrawals">
+        <td>{{ w.username || 'N/A' }}</td>
+        <td>{{ w.email || 'N/A' }}</td>
+        <td>{{ (w.amount || 0) / 100 | number:2 }}</td>
+        <td>{{ w.method || 'N/A' }}</td>
+        <td>{{ w.details || 'N/A' }}</td>
+        <td>{{ w.status || 'unknown' }}</td>
+        <td>{{ w.requested_at | date:'short' }}</td>
+        <td>
+          <button class="btn btn-success btn-sm" ng-click="approveWithdrawal(w.id)" ng-if="w.status === 'pending'">Approve</button>
+          <button class="btn btn-danger btn-sm" ng-click="rejectWithdrawal(w.id)" ng-if="w.status === 'pending'">Reject</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

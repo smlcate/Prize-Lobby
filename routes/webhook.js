@@ -1,46 +1,56 @@
 const express = require('express');
 const router = express.Router();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const db = require('../models/db');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-// Stripe raw body must be handled here only
-router.post('/', express.raw({ type: 'application/json' }), async (req, res) => {
-  console.log('🔥 Webhook hit');
+// Stripe requires raw body for webhook signature
+const bodyParser = require('body-parser');
+router.use(bodyParser.raw({ type: 'application/json' }));
+
+router.post('/', async (req, res) => {
+  const sig = req.headers['stripe-signature'];
 
   let event;
   try {
     event = stripe.webhooks.constructEvent(
       req.body,
-      req.headers['stripe-signature'],
+      sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
+  } catch (err) {
+    console.error('❌ Webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
 
-    console.log('✅ Webhook event:', event.type);
+  // Handle the event
+  if (event.type === 'payment_intent.succeeded') {
+    const intent = event.data.object;
+    const userId = parseInt(intent.metadata.user_id, 10); // ✅ fix: ensure numeric match
+    const amount = intent.amount;
 
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
-      const userId = session.metadata?.userId;
-      const amount = session.amount_total;
+    console.log(`💵 PaymentIntent succeeded for user ${userId}, amount: ${amount}`);
 
-      console.log(`💰 Crediting user ${userId} with $${amount / 100}`);
+    try {
+      // Credit user's wallet
+      await db('wallets').where({ user_id: userId }).increment('balance', amount);
 
-      await db('users').where({ id: userId }).increment('wallet_balance', amount);
-
+      // Log transaction
       await db('transactions').insert({
         user_id: userId,
-        type: 'deposit',
         amount,
-        ref: session.id
+        type: 'deposit'
       });
 
-      console.log('✅ Wallet updated');
+      return res.status(200).json({ received: true });
+    } catch (dbErr) {
+      console.error('❌ Failed to credit wallet:', dbErr);
+      return res.status(500).json({ error: 'DB update failed' });
     }
-
-    res.status(200).send('ok');
-  } catch (err) {
-    console.error('❌ Stripe webhook error:', err.message);
-    res.status(400).send(`Webhook Error: ${err.message}`);
+  } else {
+    console.log(`ℹ️ Unhandled event type: ${event.type}`);
   }
+
+  res.status(200).json({ received: true });
 });
 
 module.exports = router;

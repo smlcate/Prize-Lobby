@@ -22,7 +22,7 @@ angular.module('mainApp')
 
     // Join an event (authenticated)
     join(eventId) {
-      return $http.post(`/api/events/join/${eventId}`, {}, {
+      return $http.post(`/api/events/${eventId}/join`, {}, {
         headers: AuthService.getAuthHeader()
       });
     },

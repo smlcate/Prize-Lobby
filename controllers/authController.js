@@ -1,8 +1,10 @@
 const db = require('../models/db');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET;
+
+console.log('🌟 authController loaded');
 
 const signup = async (req, res) => {
   const { username, email, password } = req.body;
@@ -23,14 +25,21 @@ const signup = async (req, res) => {
 };
 
 const login = async (req, res) => {
+  console.log('🔐 Login attempt received');
+
+  const JWT_SECRET = process.env.JWT_SECRET;
+  console.log('🔐 JWT_SECRET in login:', JWT_SECRET);
+
   const { email, password } = req.body;
 
   try {
     const user = await db('users').where({ email }).first();
+  console.log('🔍 Searching for user:', email);
 
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user) { console.warn('❌ No user found for:', email); return res.status(401).json({ error: 'Invalid credentials' }); }
 
     const isMatch = await bcrypt.compare(password, user.password);
+  console.log('🔑 Password match:', isMatch);
     if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {

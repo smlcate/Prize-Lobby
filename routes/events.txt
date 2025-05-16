@@ -1,0 +1,9 @@
+
+// Inside your event creation POST route (e.g., POST /events)
+const settings = await db('platform_settings').first();
+
+if (req.body.max_participants > settings.max_event_participants) {
+  return res.status(400).json({
+    error: `Max participants per event is limited to ${settings.max_event_participants}`
+  });
+}

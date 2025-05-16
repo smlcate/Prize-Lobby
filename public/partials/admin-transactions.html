@@ -1,0 +1,42 @@
+<div class="container" ng-controller="AdminTransactionsController">
+  <h2>All Transactions</h2>
+
+  <div class="row mb-3">
+    <div class="col-sm-4">
+      <label>Filter by type:</label>
+      <select ng-model="filterType" class="form-control">
+        <option value="">All</option>
+        <option value="deposit">Deposit</option>
+        <option value="entry_fee">Entry Fee</option>
+        <option value="winnings">Winnings</option>
+        <option value="withdrawal">Withdrawal</option>
+      </select>
+    </div>
+    <div class="col-sm-4">
+      <label>Filter by email:</label>
+      <input type="text" ng-model="searchEmail" placeholder="Search email..." class="form-control" />
+    </div>
+    <div class="col-sm-4 d-flex align-items-end justify-content-end">
+      <button class="btn btn-primary" ng-click="exportCSV()">📥 Export to CSV</button>
+    </div>
+  </div>
+
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>User Email</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="tx in transactions | filter:{type: filterType} | filter:emailFilter">
+        <td>{{ tx.email }}</td>
+        <td>{{ tx.type }}</td>
+        <td>{{ formatAmount(tx.amount) }}</td>
+        <td>{{ tx.created_at | date:'short' }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

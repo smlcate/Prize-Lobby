@@ -1,4 +1,36 @@
-<div class="container text-center mt-5">
-  <h1>Welcome to PrizeLobby</h1>
-  <p>Host or join gaming tournaments across your favorite platforms.</p>
+<div class="homepage-container" ng-class="{ 'dark-mode': isDarkMode }">
+  <header class="hero-section">
+    <h1>🏆 Welcome to PrizeLobby</h1>
+    <p>Host and join competitive gaming events. Earn prizes, climb brackets, and play your best!</p>
+    <div class="hero-buttons">
+      <a ui-sref="signup" class="btn primary-btn">Sign Up</a>
+      <a ui-sref="events" class="btn secondary-btn">View Events</a>
+    </div>
+    <button ng-click="toggleTheme()" class="theme-toggle">
+      {{ isDarkMode ? '🌞 Light Mode' : '🌙 Dark Mode' }}
+    </button>
+  </header>
+
+  <section class="features">
+    <div class="feature-card">
+      <div class="icon">💰</div>
+      <h3>Cash Prizes</h3>
+      <p>Win real money by competing in skill-based matches and tournaments.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🎮</div>
+      <h3>Cross-Platform</h3>
+      <p>Supports Xbox, PlayStation, and PC. Play where you're strongest.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📊</div>
+      <h3>Track Progress</h3>
+      <p>Follow your event progress, stats, and tournament performance.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">⚡</div>
+      <h3>Smart Matchmaking</h3>
+      <p>Compete fairly with skill-based challenges and custom brackets.</p>
+    </div>
+  </section>
 </div>
