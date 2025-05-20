@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html ng-app="mainApp">
 <head>
+<meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' https://js.stripe.com https://ajax.googleapis.com https://cdnjs.cloudflare.com;
+    style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+    font-src 'self' https://cdn.jsdelivr.net;
+    connect-src 'self' wss://* http://localhost:3000;
+  ">
   <script src="https://js.stripe.com/v3/"></script>
   <meta charset="UTF-8" />
   <title>PrizeLobby</title>
@@ -39,10 +46,10 @@
           <a class="nav-link" href="#" ng-click="logout()">Logout</a>
         </li>
         <li class="nav-item" ng-if="!isLoggedIn()">
-          <a class="nav-link" ui-sref="login">Login</a>
+          <a class="nav-link" ui-sref="auth({ mode: 'login' })">Login</a>
         </li>
         <li class="nav-item" ng-if="!isLoggedIn()">
-          <a class="nav-link" ui-sref="signup">Sign Up</a>
+          <a class="nav-link" ui-sref="auth({ mode: 'signup' })">Sign Up</a>
         </li>
       </ul>
 
@@ -71,6 +78,7 @@
   <script src="js/controllers/mainController.js"></script>
   <script src="js/controllers/authController.js"></script>
   <script src="js/controllers/adminEventsController.js"></script>
+  <script src="js/controllers/adminChallengesController.js"></script>
   <script src="js/controllers/adminWithdrawalsController.js"></script>
   <script src="js/controllers/adminTransactionsController.js"></script>
   <script src="js/controllers/adminSettingsController.js"></script>
@@ -109,5 +117,7 @@
   </script>
 
 
+  <wallet-toast></wallet-toast>
+  <script src="js/services/walletNotificationService.js"></script>
 </body>
 </html>

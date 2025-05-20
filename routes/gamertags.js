@@ -1,23 +1,24 @@
-// routes/gamertags.js
 const express = require('express');
 const router = express.Router();
-const gamertagController = require('../controllers/gamertagController');
 const authenticate = require('../middleware/authenticate');
+const gamertagController = require('../controllers/gamertagController');
 
-const apexTracker = require('../controllers/apexTrackerController');
-router.get('/validate/apex/:platform/:username', apexTracker.validateApexGamertag);
-
-
-// POST /api/gamertags - Add a new gamertag
-router.post('/', authenticate, gamertagController.addGamertag);
-
-// POST /api/gamertags/validate - Validate gamertag against Tracker.gg
-router.post('/validate', authenticate, gamertagController.validateGamertag);
-
-// GET /api/gamertags - Get user's gamertags
+// GET all gamertags for authenticated user
 router.get('/', authenticate, gamertagController.getUserGamertags);
 
-// DELETE /api/gamertags/:id - Remove a gamertag
+// POST a new gamertag
+router.post('/', authenticate, gamertagController.addGamertag);
+
+// PUT update an existing gamertag by ID
+router.put('/:id', authenticate, gamertagController.updateGamertag);
+
+// DELETE a gamertag by ID
 router.delete('/:id', authenticate, gamertagController.deleteGamertag);
+
+// DELETE by platform (alternative delete method)
+router.delete('/platform/:platform', authenticate, gamertagController.deleteGamertag);
+
+// POST validate gamertag
+router.post('/validate', authenticate, gamertagController.validateGamertag);
 
 module.exports = router;

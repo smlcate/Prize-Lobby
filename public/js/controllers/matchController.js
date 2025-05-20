@@ -15,7 +15,6 @@ app.controller('MatchController', function($scope, $http, $stateParams, $window,
       $scope.isParticipant = newMatch.user_is_participant;
       $scope.match.winnerName = newMatch.winner_name;
 
-      // Stop polling once verified
       if (newMatch.result_verified) {
         $scope.polling = false;
       }
@@ -24,10 +23,8 @@ app.controller('MatchController', function($scope, $http, $stateParams, $window,
     });
   }
 
-  // Initial fetch
   fetchMatch();
 
-  // Poll every 15 seconds
   const poller = $interval(() => {
     if ($scope.polling) {
       fetchMatch();
@@ -36,7 +33,6 @@ app.controller('MatchController', function($scope, $http, $stateParams, $window,
     }
   }, 15000);
 
-  // Clean up on destroy
   $scope.$on('$destroy', () => {
     $interval.cancel(poller);
   });
@@ -45,10 +41,10 @@ app.controller('MatchController', function($scope, $http, $stateParams, $window,
     $http.post(`/api/matches/${matchId}/submit`, $scope.result, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
-      alert('✅ Result submitted');
-      fetchMatch(); // Immediate fetch
+      $scope.$applyAsync(() => alert('✅ Result submitted'));
+      fetchMatch();
     }).catch(err => {
-      alert('❌ Submission failed');
+      $scope.$applyAsync(() => alert('❌ Submission failed'));
       console.error(err);
     });
   };

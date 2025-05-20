@@ -3,34 +3,22 @@ angular.module('mainApp')
   const base = '/api/events';
 
   return {
-    // Get all events (open & completed)
     getAll() {
-      return $http.get(base);
+      return $http.get(base, { headers: AuthService.getAuthHeader() });
     },
-
-    // Get one event by ID
     getById(id) {
-      return $http.get(`${base}/${id}`);
+      return $http.get(`${base}/${id}`, { headers: AuthService.getAuthHeader() });
     },
-
-    // Create new event (authenticated)
     create(event) {
-      return $http.post(`${base}/create`, event, {
-        headers: AuthService.getAuthHeader()
-      });
+      return $http.post(base, event, { headers: AuthService.getAuthHeader() });
     },
-
-    // Join an event (authenticated)
     join(eventId) {
-      return $http.post(`/api/events/${eventId}/join`, {}, {
-        headers: AuthService.getAuthHeader()
-      });
+      return $http.post(`${base}/${eventId}/join`, {}, { headers: AuthService.getAuthHeader() });
     },
     start(eventId) {
-      return $http.post(`/api/events/start/${eventId}`, {}, {
+      return $http.post('/api/matches/start', { event_id: eventId }, {
         headers: AuthService.getAuthHeader()
       });
     }
-
   };
 });

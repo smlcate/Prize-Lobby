@@ -29,4 +29,10 @@ app.controller('ChallengeResultController', function($scope, $http, $location) {
       alert(err.data.error || 'Dispute failed.');
     });
   };
+
+  $scope.mockVerify = function(challengeId) {
+    $http.post('/api/mock/verify/' + challengeId, { winner_id: $scope.currentUser.id })
+      .then(() => alert("Simulated match complete!"))
+      .catch(() => alert("Error simulating match"));
+  };
 });

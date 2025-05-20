@@ -1,36 +1,37 @@
 app.controller('AdminWithdrawalsController', function($scope, $http) {
-  console.log('[AdminWithdrawalsController] Initialized');
+  console.log('[AdminWithdrawalsController] Loaded');
+
   $scope.withdrawals = [];
-  $scope.loading = true;
-  $scope.error = null;
 
   $scope.loadWithdrawals = function() {
-    $scope.loading = true;
-    $http.get('/api/admin/withdrawals').then(
-      function(res) {
-        console.log('[AdminWithdrawalsController] Loaded withdrawals:', res.data);
-        $scope.withdrawals = res.data;
-      },
-      function(err) {
-        console.error('[AdminWithdrawalsController] Failed to load withdrawals:', err);
-        $scope.error = 'Failed to load withdrawals.';
-      }
-    ).finally(function() {
-      $scope.loading = false;
+    $http.get('/api/admin/withdrawals').then(function(res) {
+      $scope.withdrawals = res.data;
     });
   };
 
   $scope.approveWithdrawal = function(id) {
-    $http.put('/api/admin/withdrawals/' + id + '/approve').then(function() {
-      $scope.loadWithdrawals();
-    });
+    if (!confirm('Approve this withdrawal?')) return;
+    $http.post('/api/admin/withdrawals/' + id + '/approve')
+      .then(function() {
+        alert('Withdrawal approved');
+        $scope.loadWithdrawals();
+      }).catch(function(err) {
+        console.error('Approve error:', err);
+        alert('Failed to approve withdrawal');
+      });
   };
 
-  $scope.rejectWithdrawal = function(id) {
-    $http.put('/api/admin/withdrawals/' + id + '/reject').then(function() {
-      $scope.loadWithdrawals();
-    });
+  $scope.denyWithdrawal = function(id) {
+    if (!confirm('Deny this withdrawal?')) return;
+    $http.post('/api/admin/withdrawals/' + id + '/deny')
+      .then(function() {
+        alert('Withdrawal denied');
+        $scope.loadWithdrawals();
+      }).catch(function(err) {
+        console.error('Deny error:', err);
+        alert('Failed to deny withdrawal');
+      });
   };
 
-  $scope.loadWithdrawals(); // Initial load
+  $scope.loadWithdrawals();
 });

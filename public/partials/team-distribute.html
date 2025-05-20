@@ -1,0 +1,15 @@
+
+<div class="container">
+  <h2>{{ team.name }} – Distribute Funds</h2>
+  <p><strong>Current Balance:</strong> ${{ balance / 100 | number:2 }}</p>
+
+  <form ng-submit="sendFunds()">
+    <label for="recipient">Recipient</label>
+    <select ng-model="form.user_id" ng-options="m.id as m.username for m in members" required></select>
+
+    <label for="amount">Amount (USD)</label>
+    <input type="number" ng-model="form.amount" min="0.01" step="0.01" required />
+
+    <button type="submit" class="btn btn-success">Send Funds</button>
+  </form>
+</div>

@@ -1,0 +1,19 @@
+
+<div class="container">
+  <h2>My Teams</h2>
+  <form ng-submit="createTeam()">
+    <input type="text" ng-model="newTeam.name" placeholder="Team Name" required />
+    <input type="text" ng-model="newTeam.bio" placeholder="Team Bio" />
+    <button type="submit">Create Team</button>
+  </form>
+
+  <hr />
+
+  <div ng-repeat="team in myTeams">
+    <h4>
+      {{ team.name }} <small>({{ team.my_role }})</small>
+      <button ng-click="viewTeam(team.id)">View</button>
+    </h4>
+    <p>{{ team.bio }}</p>
+  </div>
+</div>

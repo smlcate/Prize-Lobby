@@ -1,0 +1,25 @@
+
+<div class="container">
+  <h2>{{ teamName }} – Team Wallet</h2>
+  <p><strong>Balance:</strong> ${{ balance / 100 | number:2 }}</p>
+
+  <h4>Transaction History</h4>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Meta</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="tx in history">
+        <td>{{ tx.type }}</td>
+        <td>{{ tx.amount / 100 | number:2 }}</td>
+        <td><pre>{{ tx.metadata | json }}</pre></td>
+        <td>{{ tx.created_at | date:'medium' }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -1,52 +1,62 @@
 # ARCHITECTURE.md
 
 ## Frontend (AngularJS)
-- Uses `mainApp` module with partials routed by `ui-router`.
-- Socket.IO integration for notifications and real-time updates.
-- Key Controllers:
-  - `walletController`: Manages deposits and withdrawals.
-  - `transactionsController`: User transaction history.
-  - `adminTransactionsController`: Admin view of transactions.
-  - `adminWithdrawalsController`: Admin approve/reject withdrawal.
-  - `matchController`: Manages match result submission and bracket flow.
-  - `bracketController`: Bracket rendering and update logic.
-  - `navController`: Navigation and user auth.
-  - `challengesController`: (To Be Implemented) List and join public challenges.
+
+- Built using the `mainApp` AngularJS module.
+- Uses `ui-router` with HTML5 mode routing.
+- Modular design with partials and controllers:
+  - `authController`, `navController`: Authentication and session flow.
+  - `walletController`: Stripe deposits, withdrawals, balance fetch.
+  - `profileController`: Gamertag management and Tracker.gg validation.
+  - `bracketController`: Bracket rendering and match result tracking.
+  - `eventsController`: Creation, joining, and participation in events.
+  - `challengesController`: Creating and managing 1v1 and FFA challenges.
+  - `transactionsController`: View wallet transaction history.
+  - `notificationsController`: Real-time match and system alerts.
+  - `adminController`: Admin tools for users, payouts, events, disputes.
+- Uses Socket.IO for real-time updates and notifications.
+- Includes countdown timers, result submission, dispute UI.
 
 ## Backend (Node.js + Express)
-- Knex.js + PostgreSQL for query building.
-- Stripe used for deposits with webhook crediting user wallet.
-- Routes organized under `/routes/` with separation by feature.
-- `middleware/auth.js` manages JWT token parsing.
-- `webhook.js` handles Stripe webhook and updates wallet + logs transaction.
 
-## Database
-- `users`: Stores auth and profile data.
-- `wallets`: Each user has one wallet, balance in cents.
-- `transactions`: Logs deposits, withdrawals, prize payouts.
-- `withdrawals`: User-initiated requests processed by admin.
-- `events`, `event_participants`: Event metadata and registrants.
-- `challenges`, `challenge_participants`: Challenge-style competitions.
-- `bracket_matches`: Used for bracket-based event flow.
-- `match_verifications`: Result automation using Tracker.gg.
+- Structured in modular directories:
+  - `/routes`: API routes
+  - `/controllers`: Thin controllers forwarding to services
+  - `/services`: Core logic for matches, users, payouts, etc.
+  - `/models`: Database interaction via Knex
+  - `/middleware`: Auth, admin checks, validation
+  - `/validators`: Joi-based input schema validation
+  - `/lib`: Utility helpers and logic modules
+- PostgreSQL accessed via Knex.js
+- JWT authentication with middleware protection
+- Stripe integration for wallet funding and webhooks
+- Tracker.gg used for automatic match verification (Rocket League, Apex Legends)
+- `autoVerifyCron.js` polls Tracker.gg periodically for match updates
 
-## Game Integration
-- Apex and Rocket League support started.
-- Tracker.gg mock logic in place; real endpoints available via `trackerService.js`.
+### Notable Backend Services
 
-## Stripe Flow
-1. Client calls `/wallet/deposit/intent`.
-2. Stripe returns `client_secret` to frontend.
-3. Webhook `/webhook` listens for `payment_intent.succeeded`.
-4. Updates wallet, logs transaction, and notifies frontend.
-
-## Missing / Upcoming
-- Public challenge UI (list/join/start).
-- Gamertag validation on challenge join.
-- Score validation for Apex + Rocket League.
-- Finalize voting and chat for match dispute.
-- Host fee revenue accounting for admin dashboard.
+- `stripeService.js`: Handles payment intent creation and webhook logic
+- `matchVerifier.js`: Polls Tracker.gg and verifies match outcomes
+- `notificationService.js`: Pushes and stores user notifications
+- `disputeService.js`: Processes player disputes and resolutions
+- `teamService.js`: Team creation and join/leave logic
+- `bracketService.js`: Manages bracket matches and progression
+- `eventService.js`: Handles event creation, joining, flow
+- `challengeService.js`: Handles 1v1 and FFA challenge logic
 
 ## Testing
-- Jest setup in progress.
-- Live testing with real 1v1 Apex challenge encouraged.
+
+- Uses Jest for all unit and integration tests.
+- Tests located in `/tests/` and cover:
+  - Controllers (API routes)
+  - Services (business logic)
+  - Match flow and verification
+  - Wallet and transaction integrity
+- Mock seed users and data for reproducible test environments.
+
+## Deployment
+
+- Deployed to DigitalOcean droplet.
+- Uses HTTPS with SSL configured.
+- Stripe webhook configured for secure payment reconciliation.
+- `.env` files control environment-specific behavior.

@@ -10,6 +10,9 @@ const signup = async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
+    const existing = await db('users').where({ email }).first();
+    if (existing) return res.status(400).json({ error: 'Email already in use' });
+
     const hash = await bcrypt.hash(password, 10);
 
     await db('users').insert({
@@ -20,58 +23,49 @@ const signup = async (req, res) => {
 
     res.status(201).json({ message: 'User created' });
   } catch (err) {
-    res.status(400).json({ error: 'Signup failed', details: err.detail || err.message });
+    console.error('Signup error:', err);
+    res.status(500).json({ error: 'Signup failed' });
   }
 };
 
 const login = async (req, res) => {
-  console.log('🔐 Login attempt received');
-
-  const JWT_SECRET = process.env.JWT_SECRET;
-  console.log('🔐 JWT_SECRET in login:', JWT_SECRET);
-
   const { email, password } = req.body;
 
   try {
     const user = await db('users').where({ email }).first();
-  console.log('🔍 Searching for user:', email);
 
-    if (!user) { console.warn('❌ No user found for:', email); return res.status(401).json({ error: 'Invalid credentials' }); }
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-  console.log('🔑 Password match:', isMatch);
-    if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
+    const isValid = await bcrypt.compare(password, user.password);
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
-      expiresIn: '1d'
-    });
+    if (!isValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
-    res.json({ token });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({ token, username: user.username, email: user.email });
   } catch (err) {
-    res.status(500).json({ error: 'Login failed', details: err.message });
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Login failed' });
   }
 };
 
 const getProfile = async (req, res) => {
   try {
-    const user = await db('users').where({ id: req.user.id }).first();
+    const user = await db('users')
+      .select('id', 'email', 'username', 'created_at')
+      .where({ id: req.user.id })
+      .first();
 
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    // Optional: include gamertags
-    const gamertags = await db('gamertags').where({ user_id: user.id });
-
-    res.json({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      gamertags
-    });
+    res.json(user);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch profile', details: err.message });
+    console.error('Profile fetch failed:', err);
+    res.status(500).json({ error: 'Failed to load profile' });
   }
 };
-
 
 module.exports = {
   signup,

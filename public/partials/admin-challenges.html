@@ -1,0 +1,126 @@
+<div class="container mt-4" ng-controller="AdminChallengesController">
+  <h2 class="mb-4">Manage Challenges</h2>
+
+  <!-- Filter & Sort Controls -->
+  <div class="mb-3 row g-2 align-items-center">
+    <div class="col-auto">
+      <label class="col-form-label">Game:</label>
+    </div>
+    <div class="col-auto">
+      <input type="text" class="form-control" ng-model="filterGame" placeholder="e.g. Rocket League">
+    </div>
+
+    <div class="col-auto">
+      <label class="col-form-label">Status:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" ng-model="filterStatus">
+        <option value="">All</option>
+        <option value="open">Open</option>
+        <option value="started">Started</option>
+        <option value="completed">Completed</option>
+        <option value="disputed">Disputed</option>
+      </select>
+    </div>
+
+    <div class="col-auto">
+      <label class="col-form-label">Format:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" ng-model="filterFormat">
+        <option value="">All</option>
+        <option value="1v1">1v1</option>
+        <option value="ffa">FFA</option>
+      </select>
+    </div>
+
+    <div class="col-auto">
+      <label class="col-form-label">Sort by:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" ng-model="sortField">
+        <option value="created_at">Created</option>
+        <option value="title">Title</option>
+        <option value="game">Game</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Filtered Challenge List with Moderation -->
+  <div ng-repeat="challenge in challenges 
+                  | filter:{game: filterGame, format: filterFormat, status: filterStatus}
+                  | orderBy:sortField"
+       class="card mb-3 p-3 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-1">{{ challenge.title || 'Challenge #' + challenge.id }}</h5>
+        <p class="mb-1">
+          <strong>Game:</strong> {{ challenge.game }} |
+          <strong>Platform:</strong> {{ challenge.platform }} |
+          <strong>Format:</strong> {{ challenge.format }} |
+          <strong>Status:</strong> {{ challenge.status }}
+        </p>
+      </div>
+      <div class="d-flex gap-2">
+        <a class="btn btn-sm btn-outline-primary" ui-sref="matchDetail({ id: challenge.id })">View Match</a>
+
+        <button class="btn btn-sm btn-outline-success"
+                ng-if="challenge.status === 'started'"
+                ng-click="forceComplete(challenge.id)">
+          Force Complete
+        </button>
+
+        <button class="btn btn-sm btn-outline-danger"
+                ng-if="challenge.status === 'disputed'"
+                ng-click="resolveDispute(challenge.id)">
+          Resolve Dispute
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  app.controller('AdminChallengesController', function($scope, $http) {
+    $scope.sortField = 'created_at';
+    $scope.filterStatus = '';
+    $scope.challenges = [];
+
+    $scope.load = function() {
+      $http.get('/api/admin/challenges')
+        .then(res => {
+          $scope.challenges = res.data;
+        })
+        .catch(err => {
+          console.error('Challenge load error:', err);
+        });
+    };
+
+    $scope.forceComplete = function(challengeId) {
+      if (!confirm("Force complete this challenge?")) return;
+      $http.post('/api/admin/challenges/' + challengeId + '/complete')
+        .then(res => {
+          alert('Challenge marked completed.');
+          $scope.load();
+        })
+        .catch(err => {
+          alert('Failed to complete challenge.');
+        });
+    };
+
+    $scope.resolveDispute = function(challengeId) {
+      const winnerId = prompt("Enter winner user ID:");
+      if (!winnerId) return;
+      $http.post('/api/admin/challenges/' + challengeId + '/resolve', { winner_id: winnerId })
+        .then(res => {
+          alert('Dispute resolved.');
+          $scope.load();
+        })
+        .catch(err => {
+          alert('Failed to resolve dispute.');
+        });
+    };
+
+    $scope.load();
+  });
+</script>

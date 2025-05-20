@@ -16,8 +16,8 @@ app.controller('AdminTransactionsController', function($scope, $http) {
   };
 
   $http.get('/api/admin/transactions').then(function(res) {
-    console.log('[AdminTransactionsController] Loaded transactions:', res.data);
     $scope.transactions = res.data;
+    console.log('[AdminTransactionsController] Loaded transactions:', res.data);
   }).catch(function(err) {
     console.error('[AdminTransactionsController] Error loading transactions:', err);
   });

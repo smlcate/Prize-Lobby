@@ -1,69 +1,50 @@
 
-<div class="event-detail">
-
-  <match-countdown start-time="match.start_time"></match-countdown>
-
+<div class="container">
   <h2>{{ event.title }}</h2>
   <p><strong>Game:</strong> {{ event.game }}</p>
   <p><strong>Platform:</strong> {{ event.platform }}</p>
-  <p><strong>Type:</strong> {{ event.type }}</p>
-  <p><strong>Entry Fee:</strong> {{ event.entry_fee / 100 | currency }}</p>
-  <p><strong>Status:</strong> {{ event.status }}</p>
-  <p><strong>Verified:</strong> {{ event.verified ? '✅ Verified' : '❌ Not Verified' }}</p>
-  <p ng-if="event.winner_id"><strong>Winner ID:</strong> {{ event.winner_id }}</p>
+  <p><strong>Start Time:</strong> {{ event.start_time | date:'medium' }}</p>
 
-  <!-- Participants Table -->
-  <div ng-if="event.participants && event.participants.length">
-    <h3>Participants:</h3>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Gamertag</th>
-          <th>Platform</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr ng-repeat="p in event.participants">
-          <td>{{ p.gamertag || 'Unknown' }}</td>
-          <td>{{ p.platform || 'N/A' }}</td>
-        </tr>
-      </tbody>
-    </table>
+  <div ng-if="!hasJoined && event.status === 'created'">
+    <button class="btn btn-success" ng-click="joinEvent(event.id)">Join Event</button>
+  </div>
+  <div ng-if="hasJoined && event.status === 'created'">
+    <p>You have joined this event.</p>
   </div>
 
-  <!-- Match Summary Table -->
-  <div ng-if="event.matches && event.matches.length">
-    <h3 class="mt-4">Match Summary</h3>
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th>Player 1</th>
-          <th>Score</th>
-          <th>Player 2</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr ng-repeat="match in event.matches">
-          <td>{{ match.player1?.gamertag || 'TBD' }}</td>
-          <td>{{ match.score1 || '-' }} : {{ match.score2 || '-' }}</td>
-          <td>{{ match.player2?.gamertag || 'TBD' }}</td>
-          <td>
-            <span class="badge"
-                  ng-class="{
-                    'bg-secondary': !match.player1 || !match.player2,
-                    'bg-info text-dark': match.player1 && match.player2 && !match.verified && !match.verification_failed,
-                    'bg-success': match.verified,
-                    'bg-danger': match.verification_failed
-                  }">
-              {{ !match.player1 || !match.player2 ? 'Waiting for players' :
-                 match.verified ? 'Verified' :
-                 match.verification_failed ? 'Verification failed' :
-                 'Verifying...' }}
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <h3>Participants</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Gamertag</th>
+        <th>Platform</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="p in event.participants">
+        <td>{{ p.username }}</td>
+        <td>{{ p.gamertag || 'Unknown' }}</td>
+        <td>{{ p.platform || 'N/A' }}</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
+
+<script>
+  // This script is for Angular controller extension, included for reference only
+  // You should embed this logic in your AngularJS controller
+  /*
+  .catch(err => {
+    console.error('❌ Join failed:', err);
+    const errorMsg = err.data?.error || 'Failed to join event';
+    alert(errorMsg);
+
+    if (errorMsg.includes('gamertag')) {
+      if (confirm('You need a gamertag set for this platform to join. Go to your profile now?')) {
+        window.location.href = '#/profile';
+      }
+    }
+  });
+  */
+</script>

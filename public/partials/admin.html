@@ -1,22 +1,23 @@
-
 <div ng-controller="AdminController" class="admin-panel">
   <h2>Admin Dashboard</h2>
 
   <ul class="nav nav-tabs">
     <li ng-class="{active: adminTab === 'events'}"><a href="" ng-click="adminTab = 'events'">Events</a></li>
+    <li ng-class="{active: adminTab === 'challenges'}"><a href="" ng-click="adminTab = 'challenges'">Challenges</a></li>
     <li ng-class="{active: adminTab === 'disputes'}"><a href="" ng-click="adminTab = 'disputes'">Disputes</a></li>
     <li ng-class="{active: adminTab === 'withdrawals'}"><a href="" ng-click="adminTab = 'withdrawals'">Withdrawals</a></li>
     <li ng-class="{active: adminTab === 'transactions'}"><a href="" ng-click="adminTab = 'transactions'">Transactions</a></li>
     <li ng-class="{active: adminTab === 'settings'}"><a href="" ng-click="adminTab = 'settings'">Platform Settings</a></li>
   </ul>
 
-  <div ng-show="adminTab === 'events'" ng-include="'partials/admin-events.html'"></div>
+  <!-- Corrected controller and include -->
+  <div ng-show="adminTab === 'events'" ng-controller="AdminEventsController" ng-include="'partials/admin-events.html'"></div>
+  <div ng-show="adminTab === 'challenges'" ng-include="'partials/admin-challenges.html'"></div>
   <div ng-show="adminTab === 'disputes'" ng-include="'partials/admin-disputes.html'"></div>
   <div ng-show="adminTab === 'withdrawals'" ng-include="'partials/admin-withdrawals.html'"></div>
   <div ng-show="adminTab === 'transactions'" ng-include="'partials/admin-transactions.html'"></div>
   <div ng-show="adminTab === 'settings'" ng-include="'partials/admin-settings.html'"></div>
 
-  <!-- Manual Bracket Verification -->
   <div class="admin-section" style="margin-top: 20px;">
     <h4>Force Bracket Verification</h4>
     <button ng-click="triggerVerification()" class="btn btn-warning">🔁 Run Verification Now</button>

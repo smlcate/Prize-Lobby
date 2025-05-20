@@ -1,6 +1,7 @@
 <h2>Platform Fee Settings</h2>
-<form ng-submit="updateFee()">
-      <label>Platform Fee %:</label>
-      <input type="number" ng-model="fee" min="0" max="100" step="0.1" required />
-      <button type="submit" class="btn btn-primary">Update</button>
-    </form>
+<form ng-submit="save()">
+  <label>Platform Fee %:</label>
+  <input type="number" ng-model="settings.platform_fee_percent" min="0" max="100" step="0.1" required />
+  <button type="submit" class="btn btn-primary">Update</button>
+</form>
+<p class="text-success">{{ message }}</p>

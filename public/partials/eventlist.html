@@ -1,31 +1,92 @@
+<div class="container mt-4" ng-controller="EventsController">
+  <h2 class="mb-4">Events</h2>
 
-<div class="container mt-4">
-  <h2>Open Events</h2>
-  <ul class="list-group">
-    <li class="list-group-item" ng-repeat="event in events">
-      <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <strong>{{ event.title }}</strong> – {{ event.game }} ({{ event.format }})<br>
-          <small>{{ event.participants.length || 0 }}/{{ event.max_players || 8 }} players</small><br>
-          <span class="badge mt-1"
-                ng-class="{
-                  'bg-secondary': !event.started,
-                  'bg-success': event.started && !event.completed,
-                  'bg-dark': event.completed
-                }">
-            {{ !event.started ? 'Not started' : event.completed ? 'Completed' : 'In Progress' }}
-          </span>
-        </div>
-        <a class="btn btn-sm btn-outline-primary" ui-sref="eventDetail({ id: event.id })">View Details</a>
+  <!-- Filter & Sort Controls -->
+  <div class="mb-3 row g-2 align-items-center">
+    <div class="col-auto">
+      <label class="col-form-label">Game:</label>
+    </div>
+    <div class="col-auto">
+      <input type="text" class="form-control" ng-model="filterGame" placeholder="e.g. Rocket League">
+    </div>
+
+    <div class="col-auto">
+      <label class="col-form-label">Status:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" ng-model="filterStatus">
+        <option value="">All</option>
+        <option value="not_started">Not Started</option>
+        <option value="in_progress">In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+
+    <div class="col-auto">
+      <label class="col-form-label">Format:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" ng-model="filterFormat">
+        <option value="">All</option>
+        <option value="1v1">1v1</option>
+        <option value="2v2">2v2</option>
+        <option value="ffa">FFA</option>
+      </select>
+    </div>
+
+    <div class="col-auto">
+      <label class="col-form-label">Sort by:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" ng-model="sortField">
+        <option value="created_at">Created</option>
+        <option value="title">Title</option>
+        <option value="game">Game</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Filtered Event List -->
+  <div ng-repeat="event in events 
+                  | filter:{game: filterGame, format: filterFormat}
+                  | filter:statusFilter()
+                  | orderBy:sortField"
+       class="card mb-3 p-3 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-1">{{ event.title }}</h5>
+        <p class="mb-1">
+          <strong>Game:</strong> {{ event.game }} |
+          <strong>Format:</strong> {{ event.format }} |
+          <strong>Players:</strong> {{ event.participants.length || 0 }}/{{ event.max_players || 8 }}
+        </p>
+        <span class="badge"
+              ng-class="{
+                'bg-secondary': !event.started,
+                'bg-success': event.started && !event.completed,
+                'bg-dark': event.completed
+              }">
+          {{ !event.started ? 'Not Started' : event.completed ? 'Completed' : 'In Progress' }}
+        </span>
       </div>
-    </li>
-  </ul>
-
-  <h2 class="mt-4">Past Events</h2>
-  <ul class="list-group">
-    <li class="list-group-item" ng-repeat="event in pastEvents">
-      <strong>{{ event.title }}</strong> – Completed
-      <span class="text-muted">(Matches: {{ event.total_matches || '?' }})</span>
-    </li>
-  </ul>
+      <a class="btn btn-sm btn-outline-primary" ui-sref="eventDetail({ id: event.id })">View Details</a>
+    </div>
+  </div>
 </div>
+
+<script>
+  // Inline AngularJS method to interpret status filter
+  app.controller('EventsController', function($scope, $http) {
+    $scope.sortField = 'created_at';
+    $scope.filterStatus = '';
+    $scope.statusFilter = function() {
+      return function(event) {
+        if (!$scope.filterStatus) return true;
+        if ($scope.filterStatus === 'not_started') return !event.started;
+        if ($scope.filterStatus === 'in_progress') return event.started && !event.completed;
+        if ($scope.filterStatus === 'completed') return event.completed;
+        return true;
+      };
+    };
+  });
+</script>

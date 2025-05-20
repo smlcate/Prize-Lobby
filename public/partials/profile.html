@@ -1,64 +1,42 @@
-
 <div class="container" ng-controller="ProfileController">
-  <h2>{{ profile.username }}'s Profile</h2>
+  <h2>{{ profile.username || 'Your' }} Profile</h2>
 
   <div class="row">
     <div class="col-md-6">
       <h4>Wallet Balance</h4>
       <p>{{ profile.wallet_balance / 100 | currency }}</p>
-    
-<!-- Apex Match Verification -->
-<div ng-controller="VerifyMatchController" ng-include="'partials/verify-match.html'"></div>
-</div>
-    <div class="col-md-6">
+
       <h4>Gamertags</h4>
       <ul>
-        <li ng-repeat="gamertag in profile.gamertags">
-          {{ gamertag.platform }}: {{ gamertag.username }}
-          <button class="btn btn-sm btn-danger" ng-click="removeGamertag(gamertag.id)">Remove</button>
+        <li ng-repeat="gamertag in gamertags">
+          {{ gamertag.platform }}: {{ gamertag.gamertag }}
+          <button class="btn btn-sm btn-danger" ng-click="deleteGamertag(gamertag.id)">Remove</button>
         </li>
       </ul>
-      <form ng-submit="addGamertag()">
-        <input type="text" ng-model="newGamertag.username" placeholder="Username" required />
+
+      <form ng-submit="addGamertag()" novalidate>
+        <input type="text" ng-model="newGamertag.gamertag" placeholder="Gamertag" required />
         <select ng-model="newGamertag.platform" required>
+          <option value="" disabled selected>Select Platform</option>
           <option value="xbox">Xbox</option>
           <option value="psn">PlayStation</option>
           <option value="steam">Steam</option>
+          <option value="epic">Epic Games</option>
         </select>
-        <button type="submit" class="btn btn-sm btn-success">Add Gamertag</button>
+        <button type="submit" class="btn btn-primary btn-sm">Add Gamertag</button>
       </form>
+
+      <p class="text-danger" ng-if="error">{{ error }}</p>
+    </div>
+
+    <div class="col-md-6">
+      <h4>Link League of Legends Account</h4>
+      <form ng-submit="addLeagueAccount()">
+        <input type="text" ng-model="leagueSummoner" placeholder="Summoner Name" required>
+        <button type="submit" class="btn btn-sm btn-primary">Link League Account</button>
+      </form>
+      <p class="text-success" ng-if="leagueSuccess">{{ leagueSuccess }}</p>
+      <p class="text-danger" ng-if="leagueError">{{ leagueError }}</p>
     </div>
   </div>
-
-  <hr />
-
-  <h4>Notifications</h4>
-  <ul>
-    <li ng-repeat="note in profile.notifications">{{ note.message }}</li>
-  </ul>
-
-  <hr />
-
-  <h3>Recent Challenge Results</h3>
-  <table class="table table-striped" ng-if="recentResults.length > 0">
-    <thead>
-      <tr>
-        <th>Title</th>
-        <th>Status</th>
-        <th>Opponent</th>
-        <th>Your Score</th>
-        <th>Opponent Score</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr ng-repeat="result in recentResults">
-        <td>{{ result.title }}</td>
-        <td>{{ result.status }}</td>
-        <td>{{ result.opponent }}</td>
-        <td>{{ result.user_score }}</td>
-        <td>{{ result.opponent_score }}</td>
-      </tr>
-    </tbody>
-  </table>
-  <p ng-if="recentResults.length === 0">No recent results found.</p>
 </div>

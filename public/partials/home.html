@@ -3,10 +3,10 @@
     <h1>🏆 Welcome to PrizeLobby</h1>
     <p>Host and join competitive gaming events. Earn prizes, climb brackets, and play your best!</p>
     <div class="hero-buttons">
-      <a ui-sref="signup" class="btn primary-btn">Sign Up</a>
+      <a ui-sref="auth({ mode: 'signup' })" class="btn primary-btn">Sign Up</a>
       <a ui-sref="events" class="btn secondary-btn">View Events</a>
     </div>
-    <button ng-click="toggleTheme()" class="theme-toggle">
+    <button ng-click="toggleTheme()" class="theme-toggle" aria-label="Toggle Theme">
       {{ isDarkMode ? '🌞 Light Mode' : '🌙 Dark Mode' }}
     </button>
   </header>

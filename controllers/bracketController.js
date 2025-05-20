@@ -1,23 +1,18 @@
-// File: controllers/bracketController.js (updated to support polling and verification display)
-
-const express = require('express');
-const router = express.Router();
+const teamWalletService = require('../services/teamWalletService');
+const { logMatch } = require('../services/historyService');
 const db = require('../models/db');
 const axios = require('axios');
 
 const TRACKER_API_KEY = process.env.TRACKER_API_KEY;
 const TRACKER_API_URL = 'https://public-api.tracker.gg/v2/rocket-league/standard/profile';
 
-// Get bracket data (with status + player stats if available)
-router.get('/:event_id', async (req, res) => {
+exports.getBracketData = async (req, res) => {
   const event_id = req.params.event_id;
-
   try {
     const matches = await db('bracket_matches').where({ event_id });
     const participants = await db('event_participants').where({ event_id });
     const event = await db('events').where({ id: event_id }).first();
 
-    // Fetch player stats from Tracker.gg
     const playersWithStats = await Promise.all(participants.map(async (p) => {
       const tag = await db('gamertags')
         .where({ user_id: p.user_id, platform: event.platform })
@@ -39,15 +34,9 @@ router.get('/:event_id', async (req, res) => {
       }
     }));
 
-    res.json({
-      event,
-      matches,
-      players: playersWithStats
-    });
+    res.json({ event, matches, players: playersWithStats });
   } catch (err) {
     console.error('❌ Failed to load bracket:', err);
     res.status(500).json({ error: 'Failed to load bracket' });
   }
-});
-
-module.exports = router;
+};

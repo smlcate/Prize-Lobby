@@ -1,0 +1,31 @@
+<div ng-include="'partials/tabs.html'"></div>
+
+<div class="container">
+  <h2>My Match History</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Game</th>
+        <th>Platform</th>
+        <th>Mode</th>
+        <th>Score</th>
+        <th>Win</th>
+        <th>XP</th>
+        <th>Prize ($)</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="match in matchHistory">
+        <td>{{match.game}}</td>
+        <td>{{match.platform}}</td>
+        <td>{{match.mode}}</td>
+        <td>{{match.score}}</td>
+        <td>{{match.win ? '✔️' : '❌'}}</td>
+        <td>{{match.xp_earned}}</td>
+        <td>{{match.prize_earned / 100 | number:2}}</td>
+        <td>{{match.played_at | date:'medium'}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

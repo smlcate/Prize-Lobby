@@ -1,0 +1,31 @@
+
+<div class="container">
+  <h2>{{ team.name }}</h2>
+  <p>{{ team.bio }}</p>
+
+  <h4>Members</h4>
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Joined</th>
+        <th ng-if="canManage">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="member in members">
+        <td>{{ member.username }}</td>
+        <td>{{ member.role }}</td>
+        <td>{{ member.joined_at | date:'mediumDate' }}</td>
+        <td ng-if="canManage && member.role !== 'owner'">
+          <button ng-click="promote(member.id)">Promote</button>
+          <button ng-click="kick(member.id)">Kick</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <button ng-click="leave()" class="btn btn-danger" ng-if="!isOwner">Leave Team</button>
+  <button ng-click="disband()" class="btn btn-danger" ng-if="isOwner">Disband Team</button>
+</div>

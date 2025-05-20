@@ -1,43 +1,80 @@
-<!-- public/partials/admin-events.html -->
-<div ng-controller="AdminEventsController">
-  <h2>All Events</h2>
+<div class="container mt-4" ng-controller="AdminEventsController">
+  <h2 class="mb-4">Manage Events</h2>
 
-  <div class="mb-3">
-    <label>Status Filter:</label>
-    <select ng-model="eventStatusFilter">
-      <option value="">All</option>
-      <option value="pending">Pending</option>
-      <option value="started">Started</option>
-      <option value="completed">Completed</option>
-    </select>
+  <!-- Filter & Sort Controls -->
+  <div class="mb-3 row g-2 align-items-center">
+    <div class="col-auto">
+      <label class="col-form-label">Game:</label>
+    </div>
+    <div class="col-auto">
+      <input type="text" class="form-control" ng-model="filterGame" placeholder="e.g. Rocket League">
+    </div>
+
+    <div class="col-auto">
+      <label class="col-form-label">Status:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" ng-model="filterStatus">
+        <option value="">All</option>
+        <option value="not_started">Not Started</option>
+        <option value="in_progress">In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+
+    <div class="col-auto">
+      <label class="col-form-label">Format:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" ng-model="filterFormat">
+        <option value="">All</option>
+        <option value="1v1">1v1</option>
+        <option value="2v2">2v2</option>
+        <option value="ffa">FFA</option>
+      </select>
+    </div>
+
+    <div class="col-auto">
+      <label class="col-form-label">Sort by:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" ng-model="sortField">
+        <option value="created_at">Created</option>
+        <option value="title">Title</option>
+        <option value="game">Game</option>
+      </select>
+    </div>
   </div>
 
-  <table class="table table-bordered table-striped">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Title</th>
-        <th>Game</th>
-        <th>Platform</th>
-        <th>Type</th>
-        <th>Status</th>
-        <th>Entry Fee</th>
-        <th>Prize Pool</th>
-        <th>Created</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr ng-repeat="event in adminEvents | filter:{status: eventStatusFilter}">
-        <td>{{ event.id }}</td>
-        <td>{{ event.title }}</td>
-        <td>{{ event.game }}</td>
-        <td>{{ event.platform }}</td>
-        <td>{{ event.format }}</td>
-        <td>{{ event.status }}</td>
-        <td>{{ event.entry_fee / 100 | currency }}</td>
-        <td>{{ event.prize_pool / 100 | currency }}</td>
-        <td>{{ event.created_at | date:'medium' }}</td>
-      </tr>
-    </tbody>
-  </table>
+  <!-- Filtered Event List -->
+  <div ng-repeat="event in events 
+                  | filter:{game: filterGame, format: filterFormat}
+                  | filter:statusFilter()
+                  | orderBy:sortField"
+       class="card mb-3 p-3 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-1">{{ event.title }}</h5>
+        <p class="mb-1">
+          <strong>Game:</strong> {{ event.game }} |
+          <strong>Format:</strong> {{ event.format }} |
+          <strong>Players:</strong> {{ event.participants.length || 0 }}/{{ event.max_players || 8 }}
+        </p>
+        <span class="badge"
+              ng-class="{
+                'bg-secondary': !event.started,
+                'bg-success': event.started && !event.completed,
+                'bg-dark': event.completed
+              }">
+          {{ !event.started ? 'Not Started' : event.completed ? 'Completed' : 'In Progress' }}
+        </span>
+      </div>
+      <div class="d-flex gap-2">
+        <a class="btn btn-sm btn-outline-primary" ui-sref="eventDetail({ id: event.id })">View</a>
+        <button class="btn btn-sm btn-outline-success" ng-click="startEvent(event.id)" ng-if="!event.started">
+          Force Start
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

@@ -1,8 +1,15 @@
-
 app.controller('AdminDisputesController', function($scope, $http) {
-  $http.get('/api/admin/disputes').then(function(res) {
-    $scope.disputes = res.data;
-  }).catch(function(err) {
-    console.error('Failed to load admin disputes:', err);
-  });
+  $scope.disputes = [];
+
+  $scope.load = function() {
+    $http.get('/api/admin/disputes')
+      .then(res => {
+        $scope.disputes = res.data;
+      })
+      .catch(err => {
+        console.error('Dispute load error:', err);
+      });
+  };
+
+  $scope.load();
 });

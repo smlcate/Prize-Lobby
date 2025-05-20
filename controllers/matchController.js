@@ -1,50 +1,45 @@
-// File: controllers/matchController.js
-
-const express = require('express');
-const router = express.Router();
+// controllers/matchController.js
 const db = require('../models/db');
-const { verifyApexMatch, verifyRocketLeagueMatch } = require('../services/trackerService');
-const authenticate = require('../middleware/authenticate');
+const { distributeEventPrizeWithTeams } = require('../utils/payout_with_teams_event');
 
-router.post('/:id/verify', authenticate, async (req, res) => {
-  const matchId = req.params.id;
+module.exports = {
+  async startEvent(req, res) {
+    try {
+      const { event_id } = req.body;
 
-  try {
-    const match = await db('bracket_matches').where({ id: matchId }).first();
-    if (!match) return res.status(404).json({ error: 'Match not found' });
+      const event = await db('events').where({ id: event_id }).first();
+      if (!event) return res.status(404).json({ error: 'Event not found' });
 
-    const user = req.user;
-    const userGamertag = await db('gamertags')
-      .where({ user_id: user.id, game: match.game })
-      .first();
+      await db('events').where({ id: event_id }).update({ status: 'started' });
 
-    if (!userGamertag) return res.status(400).json({ error: 'Gamertag not set for this game' });
-
-    let result = null;
-
-    if (match.game === 'apex') {
-      result = await verifyApexMatch(userGamertag.gamertag, userGamertag.platform);
-    } else if (match.game === 'rocketleague') {
-      result = await verifyRocketLeagueMatch(userGamertag.gamertag, userGamertag.platform);
+      res.json({ success: true, message: 'Event started' });
+    } catch (err) {
+      console.error('❌ Error starting event:', err);
+      res.status(500).json({ error: 'Failed to start event' });
     }
+  },
 
-    if (!result || !result.verified) {
-      return res.status(400).json({ error: 'Match could not be verified' });
-    }
+  async checkEventMatch(req, res) {
+    try {
+      const event_id = req.params.id;
+      const event = await db('events').where({ id: event_id }).first();
+      if (!event) return res.status(404).json({ error: 'Event not found' });
 
-    // Example: record result (this depends on your schema)
-    await db('bracket_matches')
-      .where({ id: matchId })
-      .update({
-        verified: true,
-        result_json: JSON.stringify(result)
+      const resultReady = event.result_verified;
+      const winner = await db('event_participants').where({ event_id, is_winner: true }).first();
+
+      if (resultReady && winner) {
+        await distributeEventPrizeWithTeams(event_id);
+      }
+
+      res.json({
+        result_verified: resultReady,
+        winner_id: winner?.user_id || null,
+        players: await db('event_participants').where({ event_id })
       });
-
-    return res.json({ success: true, result });
-  } catch (err) {
-    console.error('[MatchController] Verification error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    } catch (err) {
+      console.error('❌ Error checking match:', err);
+      res.status(500).json({ error: 'Failed to check match' });
+    }
   }
-});
-
-module.exports = router;
+};

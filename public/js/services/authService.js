@@ -1,69 +1,49 @@
 angular.module('mainApp')
-  .factory('AuthService', function($http, $window) {
-    const base = '/api/auth';
+.factory('AuthService', function($window) {
+  const auth = {};
 
-    return {
-      signup: function(user) {
-        return $http.post(base + '/signup', user);
-      },
+  auth.saveToken = function(token) {
+    $window.localStorage['token'] = token;
+  };
 
-      login: function(credentials) {
-        return $http.post(base + '/login', credentials).then(function(res) {
-          $window.localStorage.setItem('token', res.data.token);
-          return res;
-        });
-      },
+  auth.getToken = function() {
+    return $window.localStorage['token'];
+  };
 
-      logout: function() {
-        $window.localStorage.removeItem('token');
-      },
+  auth.decodeToken = function() {
+    const token = auth.getToken();
+    if (!token) return null;
 
-      getToken: function() {
-        return $window.localStorage.getItem('token');
-      },
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload;
+  };
 
-      getUserId: function() {
-        const token = $window.localStorage.getItem('token');
-        if (!token) return null;
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          return payload.id;
-        } catch (e) {
-          return null;
-        }
-      },
+  auth.getUserPayload = function() {
+    return auth.decodeToken();
+  };
 
-      getUserPayload: function() {
-        const token = $window.localStorage.getItem('token');
-        if (!token) return null;
-        try {
-          return JSON.parse(atob(token.split('.')[1]));
-        } catch {
-          return null;
-        }
-      },
+  auth.isLoggedIn = function() {
+    const payload = auth.decodeToken();
+    if (!payload) return false;
 
-      getAuthHeader: function() {
-        const token = $window.localStorage.getItem('token');
-        return token ? { Authorization: 'Bearer ' + token } : {};
-      },
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < now) {
+      auth.logout();
+      return false;
+    }
 
-      isLoggedIn: function() {
-        return !!$window.localStorage.getItem('token');
-      }
-    };
-  });
+    return true;
+  };
 
-angular.module('mainApp').config(function($httpProvider) {
-  $httpProvider.interceptors.push(function($window) {
-    return {
-      request: function(config) {
-        const token = $window.localStorage.getItem('token');
-        if (token) {
-          config.headers.Authorization = 'Bearer ' + token;
-        }
-        return config;
-      }
-    };
-  });
+  auth.logout = function() {
+    $window.localStorage.removeItem('token');
+    $window.localStorage.removeItem('user_id');
+  };
+
+  auth.getAuthHeader = function() {
+    const token = auth.getToken();
+    return { Authorization: 'Bearer ' + token };
+  };
+
+  return auth;
 });

@@ -1,5 +1,5 @@
 angular.module('mainApp')
-.controller('NavController', function($scope, $http, $state, AuthService, WalletService) {
+.controller('NavController', function($scope, $http, $state, AuthService, WalletService, $rootScope) {
   $scope.isLoggedIn = AuthService.isLoggedIn;
   $scope.user = AuthService.getUserPayload();
   $scope.balance = 0;
@@ -10,6 +10,12 @@ angular.module('mainApp')
       $scope.balance = res.data.balance;
     });
   }
+
+  $rootScope.$on('user:login', function() {
+    WalletService.getBalance().then(res => {
+      $scope.balance = res.data.balance;
+    });
+  });
 
   $scope.logout = function() {
     AuthService.logout();
@@ -27,6 +33,4 @@ angular.module('mainApp')
       $scope.isAdmin = res.data.is_admin;
     });
   }
-
-
 });

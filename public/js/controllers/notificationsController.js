@@ -1,4 +1,4 @@
-app.controller('NotificationsController', function($scope, $http, SocketService) {
+app.controller('NotificationsController', function($scope, $http, socket) {
   $scope.notifications = [];
   $scope.error = '';
 
@@ -17,7 +17,7 @@ app.controller('NotificationsController', function($scope, $http, SocketService)
       .then(() => $scope.loadNotifications());
   };
 
-  SocketService.onNotification(function(note) {
+  socket.onNotification(function(note) {
     $scope.notifications.unshift(note);
     $scope.$apply();
   });

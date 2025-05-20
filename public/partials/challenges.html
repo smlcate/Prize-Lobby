@@ -1,39 +1,96 @@
-<!-- public/partials/challenges.html -->
-<div class="container">
-  <h2>Available Challenges</h2>
+<div class="container" ng-controller="ChallengesController">
+  <h2 class="mb-4">Active Challenges</h2>
 
-  <div class="alert alert-danger" ng-if="errorMessage">
-    {{ errorMessage }}
+  <!-- Filter & Sort Controls -->
+  <div class="mb-3 row g-2 align-items-center">
+    <div class="col-auto">
+      <label class="col-form-label">Game:</label>
+    </div>
+    <div class="col-auto">
+      <input type="text" class="form-control" ng-model="filterGame" placeholder="e.g. Rocket League">
+    </div>
+
+    <div class="col-auto">
+      <label class="col-form-label">Status:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" ng-model="filterStatus">
+        <option value="">All</option>
+        <option value="open">Open</option>
+        <option value="started">Started</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+
+    <div class="col-auto">
+      <label class="col-form-label">Platform:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" ng-model="filterPlatform">
+        <option value="">All</option>
+        <option value="steam">Steam</option>
+        <option value="epic">Epic</option>
+        <option value="psn">PlayStation</option>
+        <option value="xbox">Xbox</option>
+      </select>
+    </div>
+
+    <div class="col-auto">
+      <label class="col-form-label">Format:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" ng-model="filterFormat">
+        <option value="">All</option>
+        <option value="1v1">1v1</option>
+        <option value="2v2">2v2</option>
+        <option value="ffa">FFA</option>
+      </select>
+    </div>
+
+    <div class="col-auto">
+      <label class="col-form-label">Sort by:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" ng-model="sortField">
+        <option value="created_at">Created</option>
+        <option value="entry_fee">Entry Fee</option>
+        <option value="game">Game</option>
+      </select>
+    </div>
   </div>
 
-  <table class="table table-striped" ng-if="challenges.length">
-    <thead>
-      <tr>
-        <th>Title</th>
-        <th>Game</th>
-        <th>Platform</th>
-        <th>Entry Fee</th>
-        <th>Prize</th>
-        <th>Status</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr ng-repeat="challenge in challenges">
-        <td>{{ challenge.title }}</td>
-        <td>{{ challenge.game }}</td>
-        <td>{{ challenge.platform }}</td>
-        <td>{{ challenge.entry_fee / 100 | currency }}</td>
-        <td>{{ challenge.prize / 100 | currency }}</td>
-        <td>{{ challenge.status }}</td>
-        <td>
-          <button class="btn btn-primary btn-sm" ng-if="challenge.status === 'open'">Join</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <!-- Filtered & Sorted Challenge List -->
+  <div ng-repeat="challenge in challenges 
+                  | filter:{game: filterGame, status: filterStatus, platform: filterPlatform, format: filterFormat}
+                  | orderBy:sortField:true"
+       class="card mb-3 p-3 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center">
+      <h5 class="mb-1">{{ challenge.title || ('Challenge #' + challenge.id) }}</h5>
+      <span class="badge bg-secondary">{{ challenge.status }}</span>
+    </div>
 
-  <div ng-if="!challenges.length && !errorMessage">
-    <p>No challenges available at this time.</p>
+    <p class="mb-1"><strong>Game:</strong> {{ challenge.game }} | 
+       <strong>Platform:</strong> {{ challenge.platform }} | 
+       <strong>Format:</strong> {{ challenge.format }}</p>
+
+    <p class="mb-1"><strong>Entry Fee:</strong> {{ challenge.entry_fee / 100 | currency:'$' }}</p>
+
+    <div class="mb-2">
+      <span class="badge bg-info me-1" ng-if="challenge.creator_id === profile.id">You created this</span>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-success"
+              ng-if="challenge.status === 'open'"
+              ng-click="joinChallenge(challenge.id)">
+        Join Challenge
+      </button>
+
+      <button class="btn btn-sm btn-warning"
+              ng-if="challenge.status === 'open' && challenge.creator_id === profile.id"
+              ng-click="startChallenge(challenge.id)">
+        Start Challenge
+      </button>
+    </div>
   </div>
 </div>

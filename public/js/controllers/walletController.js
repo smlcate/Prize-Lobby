@@ -2,7 +2,12 @@ app.controller('WalletController', function($scope, $http, AuthService) {
   console.log('[WalletController] Initialized');
   $scope.wallet = {};
   $scope.depositAmount = 1000;
+  $scope.withdrawAmount = 0;
+  $scope.withdrawMethod = 'paypal';
+  $scope.withdrawDetails = '';
   $scope.cardElement = null;
+
+  const STRIPE_PUBLIC_KEY = 'pk_test_51RNyKQDInsWLln2c9JIJ6elbP3Wt7wYdC5IJ2gXn17P6BHjzSfhlASYhBYKSvNM63wh140Wo3lbx0sbC9FezLpCv00rontYUva'; // TODO: Replace for production
 
   $scope.loadWallet = function() {
     $http.get('/api/wallet/balance').then(function(res) {
@@ -15,7 +20,7 @@ app.controller('WalletController', function($scope, $http, AuthService) {
   };
 
   $scope.setupStripe = function() {
-    const stripe = Stripe('pk_test_51RNyKQDInsWLln2c9JIJ6elbP3Wt7wYdC5IJ2gXn17P6BHjzSfhlASYhBYKSvNM63wh140Wo3lbx0sbC9FezLpCv00rontYUva');
+    const stripe = Stripe(STRIPE_PUBLIC_KEY);
     const elements = stripe.elements();
     $scope.cardElement = elements.create('card');
     $scope.cardElement.mount('#card-element');
@@ -41,16 +46,35 @@ app.controller('WalletController', function($scope, $http, AuthService) {
       }).then(function(result) {
         if (result.error) {
           console.error('[Stripe] Payment failed:', result.error.message);
-          alert('Payment failed: ' + result.error.message);
+          $scope.$applyAsync(() => alert('Payment failed: ' + result.error.message));
         } else {
           console.log('[Stripe] Payment confirmed:', result.paymentIntent.id);
-          alert('Deposit successful!');
+          $scope.$applyAsync(() => alert('Deposit successful!'));
           $scope.loadWallet();
         }
       });
     }).catch(function(err) {
       console.error('Deposit error:', err);
-      alert('Failed to create payment intent.');
+      $scope.$applyAsync(() => alert('Failed to create payment intent.'));
+    });
+  };
+
+  $scope.requestWithdrawal = function() {
+    if (!$scope.withdrawAmount || $scope.withdrawAmount < 100) {
+      alert('Please enter a valid withdrawal amount (min $1).');
+      return;
+    }
+
+    $http.post('/api/withdrawals/withdraw', {
+      amount: $scope.withdrawAmount,
+      method: $scope.withdrawMethod,
+      details: $scope.withdrawDetails
+    }).then(function() {
+      alert('Withdrawal request submitted.');
+      $scope.loadWallet();
+    }).catch(function(err) {
+      console.error('Withdrawal request error:', err);
+      alert('Failed to submit withdrawal request.');
     });
   };
 

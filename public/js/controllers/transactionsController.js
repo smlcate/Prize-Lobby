@@ -1,23 +1,30 @@
-angular.module('mainApp')
-.controller('TransactionsController', function($scope, $http, TransactionsService) {
+app.controller('TransactionsController', function($scope, $http, AuthService) {
   $scope.transactions = [];
   $scope.withdrawals = [];
-  $scope.filterType = '';
+  $scope.loading = true;
+  $scope.error = null;
 
   $scope.formatAmount = function(amount) {
-    const dollars = (amount / 100).toFixed(2);
-    return (amount >= 0 ? '+' : '-') + '$' + Math.abs(dollars);
+    return '$' + (amount / 100).toFixed(2);
   };
 
-  // Load transaction history
-  TransactionsService.getAll().then(res => {
+  $http.get('/api/transactions', {
+    headers: AuthService.getAuthHeader()
+  }).then(function(res) {
     $scope.transactions = res.data;
+  }).catch(function(err) {
+    console.error('❌ Failed to load transactions:', err);
+    $scope.error = 'Failed to load transactions.';
   });
 
-  // Load withdrawal history
-  $http.get('/api/withdrawals/mine').then(function(res) {
+  $http.get('/api/withdrawals', {
+    headers: AuthService.getAuthHeader()
+  }).then(function(res) {
     $scope.withdrawals = res.data;
   }).catch(function(err) {
-    console.error('Error fetching withdrawals:', err);
+    console.error('❌ Failed to load withdrawals:', err);
+    $scope.error = 'Failed to load withdrawals.';
+  }).finally(function() {
+    $scope.loading = false;
   });
 });
